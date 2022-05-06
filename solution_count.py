@@ -483,6 +483,7 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
                 else:
                     # Find the box with the least number of options and take a guess
                     # The place_and_erase() call changes this dynamically
+                    # remove this comment later
                     min_guesses = (game.n + 1, -1)
                     for i in range(game.n):
                         for j in range(game.n):
