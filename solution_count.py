@@ -449,7 +449,7 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
     2) write candidates with only 1 option/ 2 pairs
     3) with multiple options, take a guess and branch (backtrack)
     """
-#dddddd
+
     def solve(game, depth=0, progress_factor=1):
         nonlocal calls, depth_max, progress, progress_update, update_increment
         global SOLUTION_COUNT, MAX_SOLUTIONS
