@@ -182,18 +182,21 @@ class App:
                         self.cboard[self.selected[1]][self.selected[0]] = int(event.unicode)
 
                 if event.key == pg.K_SPACE:
-                    solver.get_possibles(self.cboard, self.cpossibles)
+                    # solver.get_possibles(self.cboard, self.cpossibles)
+                    self.load_test_puzzle(test_boards.TESTBOARD1)
+                    # solver.get_possibles(self.cboard, self.cpossibles)
+                    solution_count.count_solutions(self.puzzle)
 
-                    if self.draw_solved_cells:
-                        solver.set_solved_cells(self.cboard, self.cpossibles, self.draw_solved_cells[1])
-                        solver.get_possibles(self.cboard, self.cpossibles)
-                        self.draw_solved_cells = False
-
-                    elif self.step_handler(solver.naked_singles(self.cpossibles)):
-                        pass
-
-                    elif self.step_handler(solver.hidden_singles(self.cpossibles)):
-                        pass
+                    # if self.draw_solved_cells:
+                    #     solver.set_solved_cells(self.cboard, self.cpossibles, self.draw_solved_cells[1])
+                    #     solver.get_possibles(self.cboard, self.cpossibles)
+                    #     self.draw_solved_cells = False
+                    #
+                    # elif self.step_handler(solver.naked_singles(self.cpossibles)):
+                    #     pass
+                    #
+                    # elif self.step_handler(solver.hidden_singles(self.cpossibles)):
+                    #     pass
 
                     # elif self.step_handler(solver.naked_pair_triple_quads(self.cpossibles)):
                     #     pass
