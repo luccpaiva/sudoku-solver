@@ -6,8 +6,7 @@ from typing import List, Tuple, Set
 
 SIZE = 9
 BOX_SIZE = 3
-MAX_SOLUTIONS = 2
-SOLUTION_COUNT = 0
+MAX_SOLUTIONS = 10
 
 
 class Sudoku:
@@ -452,13 +451,10 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
 
     def solve(game, depth=0, progress_factor=1):
         nonlocal calls, depth_max, progress, progress_update, update_increment
-        global SOLUTION_COUNT, MAX_SOLUTIONS
         calls += 1
         depth_max = max(depth, depth_max)
         solved = False
         while not solved:
-            if SOLUTION_COUNT == MAX_SOLUTIONS:
-                break
             solved = True  # assume solved
             edited = False  # if no edits, either done or stuck
             for i in range(game.n):
@@ -478,7 +474,6 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
                 if solved:
                     progress += progress_factor
                     solution_set.append(grid2str(game.grid.copy()))
-                    SOLUTION_COUNT += 1
                     return True
                 else:
                     # Find the box with the least number of options and take a guess
@@ -506,6 +501,8 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
                             print("%.1f" % (progress * 100), end='...')
                             progress_update = (
                                                       (progress // update_increment) + 1) * update_increment
+                        if len(solution_set) > MAX_SOLUTIONS:
+                            break
                     return solved
         return solved
 
@@ -576,9 +573,7 @@ def count_solutions(puzzle):
     if len(solution_set) == 1:
         print("This puzzle has an unique solution")
         print(*solution_set, sep="\n")
-    elif len(solution_set) < MAX_SOLUTIONS:
+    elif len(solution_set) <= MAX_SOLUTIONS:
         print("This puzzle has %d distinct solutions" % len(solution_set))
     else:
-        print("This puzzle has at least %d solutions" % len(solution_set))
-
-    grid = []
+        print("This puzzle has at least %d solutions" % MAX_SOLUTIONS)
