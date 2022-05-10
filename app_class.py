@@ -85,6 +85,11 @@ class App:
         self.playingButtons = []
         self.load_buttons()
 
+        # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
+        # ///////////////////////////////////////////////////////////////
+        self.load_test_puzzle(test_boards.TESTBOARD1)
+        solver.get_possibles(self.cboard, self.cpossibles)
+
     # GAME LOOP
     # ///////////////////////////////////////////////////////////////
     def run(self):
@@ -98,6 +103,7 @@ class App:
 
     # PLAYING STATE FUNCTIONS
     # ///////////////////////////////////////////////////////////////
+    #TODO: use the new function match instead of if/elif
     def playing_events(self):
         for event in pg.event.get():
 
@@ -121,12 +127,14 @@ class App:
                         if button.highlighted:
 
                             if button.text == 'Check':
-                                print(solution_count.grid2str(self.puzzle))
+                                # print(solution_count.grid2str(self.puzzle))
+                                if solver.board_is_solved(self.cboard):
+                                    print("Solved!")
+                                else:
+                                    print("Not solved!")
 
                             elif button.text == 'Load':
                                 self.load_test_puzzle(test_boards.TESTBOARD1)
-                                solver.get_possibles(self.cboard, self.cpossibles)
-                                #solver.naked_pairs(self.cpossibles)
 
                             elif button.text == 'Easy':
                                 self.get_puzzle('1')
@@ -150,12 +158,12 @@ class App:
                                 solver.get_possibles(self.cboard, self.cpossibles)
 
                                 if self.draw_solved_cells:
-                                    solver.set_solved_cells(self.cboard, self.cpossibles, self.draw_solved_cells[1])
+                                    solver.list_solved_cells(self.cboard, self.cpossibles, self.draw_solved_cells[1])
                                     solver.get_possibles(self.cboard, self.cpossibles)
                                     self.draw_solved_cells = False
 
                                 if self.draw_solved_candidates:
-                                    solver.set_solved_candidates(self.cboard, self.cpossibles, self.draw_solved_candidates[1])
+                                    solver.list_solved_candidates(self.cboard, self.cpossibles, self.draw_solved_candidates[1])
                                     self.draw_solved_candidates = False
 
 
