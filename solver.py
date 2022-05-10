@@ -5,7 +5,7 @@ FULL_SET = set(range(1, 10))
 
 
 def powerset(iterable):
-    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+    # powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
     s = set(iterable)  # allows duplicate elements
     return chain.from_iterable(combinations(s, r) for r in range(1, len(s) + 1))
 
@@ -14,11 +14,11 @@ def board_is_solved(board):
     for i, row in enumerate(board):
         if 0 in row:
             return False
-
     return True
 
 
 def visible_cells(idx):
+    # TODO consider update this method to make it possible to use the indices directly with an array
     cells_seen_temp = []
     for i in range(9):
         cells_seen_temp.append([idx[0], i])
@@ -41,14 +41,14 @@ def visible_cells(idx):
     return cells_seen
 
 
-# gets a set of solved cells in the format [row (int), col (int), single_candidate (set)]
-def set_solved_cells(board, possibles, solved_list):
+# gets a list of solved cells in the format [row (int), col (int), single_candidate (set)]
+def list_solved_cells(board, possibles, solved_list):
     for solved_candidate in solved_list:
         board[solved_candidate[0]][solved_candidate[1]] = solved_candidate[2]
         possibles[solved_candidate[0]][solved_candidate[1]] = set()
 
 
-def set_solved_candidates(possibles, solved_list):
+def list_solved_candidates(possibles, solved_list):
     for solved_candidate in solved_list:
         possibles[solved_candidate[0]][solved_candidate[1]].pop(solved_candidate[2])
 
@@ -63,39 +63,20 @@ def initiate_possibles(board):
                 possibles[i][j] = FULL_SET.copy()
             else:
                 possibles[i][j] = set()
+
     return possibles
 
 
 def get_possibles(board, possibles):
-    # remove taken numbers from row
-    for i, row in enumerate(board):
-        taken = set(row)
+    for i in range(9):
         for j in range(9):
-            possibles[i][j] -= taken
-
-    # remove taken numbers from column
-    for j in range(9):
-        taken = set()
-        for i in range(9):
-            taken.add(board[i][j])
-        for i in range(9):
-            possibles[i][j] -= taken
-
-    # remove taken numbers from box
-    for i in range(3):
-        for j in range(3):
-
             taken = set()
-            ii = i * 3
-            jj = j * 3
+            for row, col in visible_cells([i, j]):
+                taken.add(board[row][col])
+            possibles[i][j] -= taken
 
-            for ibox in range(ii, ii + 3):
-                for jbox in range(jj, jj + 3):
-                    taken.add(board[ibox][jbox])
-
-            for ibox in range(ii, ii + 3):
-                for jbox in range(jj, jj + 3):
-                    possibles[ibox][jbox] -= taken
+    # TODO understand why this doesn't work as substitute of lines 74,75:
+    # taken.add(board[row][col] for row, col in visible_cells([i, j]))
 
     return possibles
 
@@ -178,27 +159,27 @@ def hidden_singles(possibles):
     h_singles = list({*h_singles_row, *h_singles_col, *h_singles_box})
     h_singles.sort()
 
-    RCB = set.intersection(h_singles_row, h_singles_col, h_singles_box)
-    RC = set.intersection(h_singles_row, h_singles_col)
-    RB = set.intersection(h_singles_row, h_singles_box)
-    CB = set.intersection(h_singles_col, h_singles_box)
+    rcb = set.intersection(h_singles_row, h_singles_col, h_singles_box)
+    rc = set.intersection(h_singles_row, h_singles_col)
+    rb = set.intersection(h_singles_row, h_singles_box)
+    cb = set.intersection(h_singles_col, h_singles_box)
 
     print("***********************************************************")
     print(f"Hidden singles: {str(len(h_singles))}")
     for i, num in enumerate(h_singles):
-        if num in RCB:
+        if num in rcb:
             text = f"{helpers.pos2cord(num)} set to {num[2]}. unique in Row, Column and Box"
             print(text)
             h_singles_text.append(text)
-        elif num in RC:
+        elif num in rc:
             text = f"{helpers.pos2cord(num)} set to {num[2]}. unique in Row and Column"
             print(text)
             h_singles_text.append(text)
-        elif num in RB:
+        elif num in rb:
             text = f"{helpers.pos2cord(num)} set to {num[2]}. unique in Row and Box"
             print(text)
             h_singles_text.append(text)
-        elif num in CB:
+        elif num in cb:
             text = f"{helpers.pos2cord(num)} set to {num[2]}. unique in Column and Box"
             print(text)
             h_singles_text.append(text)
@@ -218,7 +199,7 @@ def hidden_singles(possibles):
     if len(h_singles) > 0:
         return "Hidden Singles", True, list(h_singles), h_singles_text
     else:
-        return "Naked Singles", False
+        return "Hidden Singles", False
 
 
 def naked_pairs(possibles):
