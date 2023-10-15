@@ -6,44 +6,14 @@ from bs4 import BeautifulSoup
 
 import helpers
 import solution_count
-import solver
 import test_boards
+from board_class import *
+from solver_class import *
 from button_class import *
-
-# FPS
-# ///////////////////////////////////////////////////////////////
-FPS = 5
-
-# WINDOW SIZE
-# ///////////////////////////////////////////////////////////////
-WIDTH = 1150
-HEIGHT = 750
-
-# POSITIONS
-# ///////////////////////////////////////////////////////////////
-GRID_POS = (40, 90)
-CELL_SIZE = 70
-GRID_SIZE = CELL_SIZE * 9
-STT_LIST_POS = (GRID_POS[0] + GRID_SIZE + 10, GRID_POS[1])
-STT_RESULT_POS = (STT_LIST_POS[0], STT_LIST_POS[1] + 245)
-
-# COLOURS
-# ///////////////////////////////////////////////////////////////
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (198, 7, 14)
-GREEN = (18, 191, 15)
-LIGHTBLUE = (237, 244, 255)
-LIGHTYELLOW = (251, 252, 187)
-LIGHTGREEN = (164, 255, 161)
-DARKBLUE = (0, 58, 173)
-LIGHTGRAY = (237, 237, 237)
-DARKGRAY = (201, 201, 201)
-LOCKEDCELLCOLOUR = (234, 239, 242)
-INCORRECTCELLCOLOUR = (195, 121, 121)
+from settings import *
 
 
-class App:
+class Game:
     def __init__(self):
         # PYGAME INITIALIZATION
         # ///////////////////////////////////////////////////////////////
@@ -65,11 +35,9 @@ class App:
         self.actionMade = True
         self.cellChanged = False
 
-        # BOARD VARIABLES
+        # INITIALIZE BOARD
         # ///////////////////////////////////////////////////////////////
-        self.puzzle = tuple([[0 for _ in range(9)] for _ in range(9)])  # the puzzle itself, it does not change
-        self.cboard = [[0 for _ in range(9)] for _ in range(9)]  # the current board, what will be edited and printed
-        self.cpossibles = solver.initiate_possibles(self.cboard)  # the list of current possible candidates
+        self.board = Board()
 
         # STRATEGIES VARIABLES
         # ///////////////////////////////////////////////////////////////
@@ -87,8 +55,12 @@ class App:
 
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
-        self.load_test_puzzle(test_boards.TESTBOARD1)
-        solver.get_possibles(self.cboard, self.cpossibles)
+        self.board.load_board(helpers.str2grid(test_boards.TESTBOARD_npair))
+        self.solver = Solver(self.board)
+        # self.board.set_cells(((1, 0), 5))
+        # self.solver = Solver(self.board)
+        # solver.get_possibles(self.cboard, self.cpossibles)
+        # solver.naked_pairs(self.cpossibles)
 
     # GAME LOOP
     # ///////////////////////////////////////////////////////////////
@@ -103,7 +75,7 @@ class App:
 
     # PLAYING STATE FUNCTIONS
     # ///////////////////////////////////////////////////////////////
-    #TODO: use the new function match instead of if/elif
+    # TODO: use the new function match instead of if/elif
     def playing_events(self):
         for event in pg.event.get():
 
@@ -134,7 +106,7 @@ class App:
                                     print("Not solved!")
 
                             elif button.text == 'Load':
-                                self.load_test_puzzle(test_boards.TESTBOARD1)
+                                self.load_test_puzzle(test_boards.TESTBOARD_npair)
 
                             elif button.text == 'Easy':
                                 self.get_puzzle('1')
@@ -163,9 +135,9 @@ class App:
                                     self.draw_solved_cells = False
 
                                 if self.draw_solved_candidates:
-                                    solver.list_solved_candidates(self.cboard, self.cpossibles, self.draw_solved_candidates[1])
+                                    solver.list_solved_candidates(self.cboard, self.cpossibles,
+                                                                  self.draw_solved_candidates[1])
                                     self.draw_solved_candidates = False
-
 
                                 elif self.step_handler(solver.naked_singles(self.cpossibles)):
                                     pass
@@ -175,7 +147,6 @@ class App:
 
                                 # elif self.step_handler(solver.naked_pair_triple_quads(self.cpossibles)):
                                 #     pass
-
 
                         self.actionMade = True
 
@@ -191,7 +162,6 @@ class App:
 
                 if event.key == pg.K_SPACE:
                     # solver.get_possibles(self.cboard, self.cpossibles)
-                    self.load_test_puzzle(test_boards.TESTBOARD1)
                     # solver.get_possibles(self.cboard, self.cpossibles)
                     solution_count.count_solutions(self.puzzle)
 
@@ -208,7 +178,6 @@ class App:
 
                     # elif self.step_handler(solver.naked_pair_triple_quads(self.cpossibles)):
                     #     pass
-
 
     def playing_update(self):
         self.mousePos = pg.mouse.get_pos()
@@ -254,8 +223,8 @@ class App:
     # CLASS HELPER FUNCTIONS
     # ///////////////////////////////////////////////////////////////
     def load_test_puzzle(self, testpuzzle):
-        self.puzzle = solution_count.str2grid(testpuzzle)
-        self.cboard = solution_count.str2grid(testpuzzle)
+        self.board.puzzle = solution_count.str2grid(testpuzzle)
+        self.board.board = solution_count.str2grid(testpuzzle)
         self.cpossibles = solver.initiate_possibles(self.cboard)
 
     def get_puzzle(self, difficulty):
@@ -344,26 +313,22 @@ class App:
             return True
 
     def draw_board_numbers(self, window):
-        for i, row in enumerate(self.cboard):
-            for j, num in enumerate(row):
-                pos = [GRID_POS[0] + (j * CELL_SIZE), GRID_POS[1] + (i * CELL_SIZE)]
+        # Draw numbers for the original puzzle
+        for (row, col), num in self.board.board.items():
+            pos = [GRID_POS[0] + (col * CELL_SIZE), GRID_POS[1] + (row * CELL_SIZE)]
+            self.text_to_screen(window, str(num), pos, 'board_num_size', BLACK)
 
-                if self.puzzle[i][j] != 0:
-                    self.text_to_screen(window, str(num), pos, 'board_num_size', DARKBLUE)
-
-                elif num != 0:
-                    self.text_to_screen(window, str(num), pos, 'board_num_size', BLACK)
+        # Draw numbers that are filled in by the player/solver
+        for (row, col), num in self.board.puzzle.items():
+            pos = [GRID_POS[0] + (col * CELL_SIZE), GRID_POS[1] + (row * CELL_SIZE)]
+            self.text_to_screen(window, str(num), pos, 'board_num_size', DARKBLUE)
 
     def draw_candidates_numbers(self, window):
-        for i, row in enumerate(self.cboard):
-            for j, num in enumerate(row):
-
-                if num == 0:
-                    for k in range(9):
-                        if (k + 1) in self.cpossibles[i][j]:
-                            pos = [GRID_POS[0] + (j * CELL_SIZE) + ((k % 3) * CELL_SIZE // 3),
-                                   GRID_POS[1] + (i * CELL_SIZE) + ((k // 3) * CELL_SIZE // 3)]
-                            self.text_to_screen(window, str(k + 1), pos, 'cand_size', BLACK)
+        for (row, col), cells in self.solver.possibles.items():
+            for p in cells:
+                pos = [GRID_POS[0] + (col * CELL_SIZE) + ((p - 1) % 3 * CELL_SIZE // 3),
+                       GRID_POS[1] + (row * CELL_SIZE) + ((p - 1) // 3 * CELL_SIZE // 3)]
+                self.text_to_screen(window, str(p), pos, 'cand_size', BLACK)
 
     def draw_highlight(self, window, pos):
         # HIGHLIGHT ROW
@@ -429,21 +394,26 @@ class App:
         # strategy text board
         pg.draw.rect(window, BLACK, (STT_RESULT_POS[0], STT_RESULT_POS[1], 460, 385), 2)
 
-    def draw_highlight_solved_cells(self, window, list_solved_cells):
+    @staticmethod
+    def draw_highlight_solved_cells(window, list_solved_cells):
         for solved_cell in list_solved_cells:
             pos = [GRID_POS[0] + (solved_cell[1] * CELL_SIZE) + (((solved_cell[2] - 1) % 3) * CELL_SIZE // 3),
                    GRID_POS[1] + (solved_cell[0] * CELL_SIZE) + (((solved_cell[2] - 1) // 3) * CELL_SIZE // 3)]
             pg.draw.rect(window, LIGHTGREEN, (pos[0], pos[1], CELL_SIZE // 3, CELL_SIZE // 3))
 
-    def draw_highlight_solved_candidates(self, window, list_highlighted_candidates, list_solved_candidates):
+    @staticmethod
+    def draw_highlight_solved_candidates(window, list_highlighted_candidates, list_solved_candidates):
         for highlighted_candidates in list_highlighted_candidates:
-            pos = [GRID_POS[0] + (highlighted_candidates[1] * CELL_SIZE) + (((highlighted_candidates[2] - 1) % 3) * CELL_SIZE // 3),
-                   GRID_POS[1] + (highlighted_candidates[0] * CELL_SIZE) + (((highlighted_candidates[2] - 1) // 3) * CELL_SIZE // 3)]
+            pos = [GRID_POS[0] + (highlighted_candidates[1] * CELL_SIZE) + (
+                    ((highlighted_candidates[2] - 1) % 3) * CELL_SIZE // 3),
+                   GRID_POS[1] + (highlighted_candidates[0] * CELL_SIZE) + (
+                           ((highlighted_candidates[2] - 1) // 3) * CELL_SIZE // 3)]
             pg.draw.rect(window, LIGHTYELLOW, (pos[0], pos[1], CELL_SIZE // 3, CELL_SIZE // 3))
 
         for solved_candidate in list_solved_candidates:
             pos = [GRID_POS[0] + (solved_candidate[1] * CELL_SIZE) + (((solved_candidate[2] - 1) % 3) * CELL_SIZE // 3),
-                   GRID_POS[1] + (solved_candidate[0] * CELL_SIZE) + (((solved_candidate[2] - 1) // 3) * CELL_SIZE // 3)]
+                   GRID_POS[1] + (solved_candidate[0] * CELL_SIZE) + (
+                           ((solved_candidate[2] - 1) // 3) * CELL_SIZE // 3)]
             pg.draw.rect(window, LIGHTGREEN, (pos[0], pos[1], CELL_SIZE // 3, CELL_SIZE // 3))
 
     def draw_solved_text(self, window, list_solved_cells_text):
