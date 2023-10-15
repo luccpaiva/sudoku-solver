@@ -223,7 +223,7 @@ class Sudoku:
                     self.candidates[i][j].remove(x)
                     edited = True
             if edited:
-                 erased.append((i, j))
+                erased.append((i, j))
         return erased
 
     def set_candidates(self, nums, indices):
@@ -364,6 +364,7 @@ class Sudoku:
                 # keeps = self.box_line_reduction(inds)
                 # for inds_keep, nums in keeps:
                 #     self.erase(nums, inds, inds_keep)
+
 
 def grid_equal(A, B):
     """ Check if 2 grids are equal or not"""
@@ -539,7 +540,6 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
 
 
 def count_solutions(puzzle):
-
     grid = deepcopy(puzzle)
     print("*******************")
     print(grid2str(grid))
