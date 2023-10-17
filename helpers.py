@@ -125,6 +125,19 @@ def get_visible_cells(cell):
     return units
 
 
+def get_common_units(cell1, cell2):
+    visible_units1 = get_visible_cells(cell1)
+    visible_units2 = get_visible_cells(cell2)
+
+    common_units = {}
+    for unit_type in ['row', 'col', 'box']:
+        common_in_unit = visible_units1[unit_type].intersection(visible_units2[unit_type])
+        if common_in_unit:
+            common_units[unit_type] = common_in_unit
+
+    return common_units
+
+
 def print_possibles(board: BoardType):
     for i in range(9):
         for j in range(9):
@@ -137,6 +150,8 @@ def print_possibles(board: BoardType):
         print()
 
 
+# Solver text format
+# ///////////////////////////////////////////////////////////////
 def format_hidden_single_text(cell: Cell, hidden_single, hidden_in_units):
     """Formats the descriptive text for a found hidden single."""
     unit_names = {'row': 'row', 'col': 'column', 'box': 'box'}
@@ -147,10 +162,12 @@ def format_hidden_single_text(cell: Cell, hidden_single, hidden_in_units):
         last_comma_idx = units_text.rfind(',')
         units_text = units_text[:last_comma_idx] + ' and' + units_text[last_comma_idx + 1:]
 
-    text = f"Cell {pos2cord(cell)} set to {hidden_single}. Unique in {units_text}"
+    text = f"{pos2cord(cell)} set to {hidden_single}. Unique in {units_text}"
     return text
 
 
+# Solver functions
+# ///////////////////////////////////////////////////////////////
 def powerset(iterable):
     """Return a powerset of the given iterable."""
     # powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
