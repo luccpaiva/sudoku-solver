@@ -37,6 +37,11 @@ def char2int(char):
         return str(ord(char) - 1)
 
 
+def format_cell(cell):
+    """Represent cell coordinate as per your system."""
+    return f"{int2char(cell[0])}{cell[1] + 1}"
+
+
 def pos2cord(pos):
     """Convert a position tuple (row, col) to its string representation."""
     return int2char(pos[0]) + str(pos[1] + 1)
@@ -96,46 +101,12 @@ def get_cells(board: BoardType, *cells: Cell) -> set[int]:
     return results
 
 
-def set_cells(board: BoardType, cells: Cell):
+def set_cells(board, cells: list[tuple[Cell, int]]):
     """Set the given cells to the given values."""
     for cell, value in cells:
-        board[cell] = value
+        board.board[cell] = value
 
-
-def get_visible_cells(cell):
-    """Return a dictionary containing sets of all cells visible to the given cell, categorized by unit."""
-    row, col = cell
-    row_units = {(row, i) for i in range(9)}
-    col_units = {(i, col) for i in range(9)}
-
-    # Calculate the box coordinates
-    start_row, start_col = 3 * (row // 3), 3 * (col // 3)
-    box_units = {(i, j) for i in range(start_row, start_row + 3) for j in range(start_col, start_col + 3)}
-
-    units = {
-        'row': row_units,
-        'col': col_units,
-        'box': box_units,
-    }
-
-    # Exclude the current cell from the units
-    for unit_cells in units.values():
-        unit_cells.discard(cell)
-
-    return units
-
-
-def get_common_units(cell1, cell2):
-    visible_units1 = get_visible_cells(cell1)
-    visible_units2 = get_visible_cells(cell2)
-
-    common_units = {}
-    for unit_type in ['row', 'col', 'box']:
-        common_in_unit = visible_units1[unit_type].intersection(visible_units2[unit_type])
-        if common_in_unit:
-            common_units[unit_type] = common_in_unit
-
-    return common_units
+    # return board
 
 
 def print_possibles(board: BoardType):
@@ -163,6 +134,20 @@ def format_hidden_single_text(cell: Cell, hidden_single, hidden_in_units):
         units_text = units_text[:last_comma_idx] + ' and' + units_text[last_comma_idx + 1:]
 
     text = f"{pos2cord(cell)} set to {hidden_single}. Unique in {units_text}"
+    return text
+
+
+def format_naked_pairs_text(result_dict):
+    text = []
+    for pair, data in result_dict.items():
+        candidates = "/".join(map(str, data['candidates']))
+        cells = "/".join([format_cell(cell) for cell in pair])
+
+        for unit_type, cells_to_remove_from in data['common_units'].items():
+            if cells_to_remove_from:  # Check if set is not empty
+                removal_cells = ", ".join([format_cell(cell) for cell in cells_to_remove_from])
+                text.append(f"NAKED PAIR ({unit_type}): {cells} removes {candidates} from {removal_cells}")
+
     return text
 
 

@@ -3,12 +3,12 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 
+from settings import *
 import solution_count
 import test_boards
 from board_class import *
 from solver_class import *
 from button_class import *
-from settings import *
 
 
 class Game:
@@ -38,12 +38,12 @@ class Game:
         # INITIALIZE CLASSES
         # ///////////////////////////////////////////////////////////////
         self.board = Board()
-        self.solver = Solver(self.board.get_board_state())
+        self.solver = Solver(self.board)
         self.strategy_result = None
 
         # STRATEGIES VARIABLES
         # ///////////////////////////////////////////////////////////////
-        self.basic_stt_list = ['Naked Singles', 'Hidden Singles', 'Naked Pairs/Triples', 'Hidden Pairs/Triples',
+        self.basic_stt_list = ['Naked Singles', 'Hidden Singles', 'Naked Pairs', 'Hidden Pairs/Triples',
                                'Naked/Hidden Quads', 'Pointing Pairs', 'Box/Line Reduction']
         self.tough_stt_list = ['X-Wing', 'Y-Wing', 'Swordfish', 'XYZ-Wing']
 
@@ -55,7 +55,7 @@ class Game:
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
         self.board.load_board(helpers.str2grid(test_boards.TESTBOARD_npair))
-        self.solver = Solver(self.board.get_board_state())
+        self.board.possibles = self.solver.update_possibles(self.board)
 
     # GAME LOOP
     # ///////////////////////////////////////////////////////////////
@@ -70,17 +70,14 @@ class Game:
 
     # PLAYING STATE FUNCTIONS
     # ///////////////////////////////////////////////////////////////
-    # TODO: use the new function match instead of if/elif
     def playing_events(self):
         for event in pg.event.get():
 
             if event.type == pg.QUIT:
                 self.running = False
 
-            # user clicks
             if event.type == pg.MOUSEBUTTONDOWN:
 
-                # user clicks on a cell
                 cellSelected = self.mouse_on_grid()
 
                 if cellSelected:
@@ -89,7 +86,6 @@ class Game:
                 else:
                     self.selected = None
 
-                    # user clicks on a button
                     for button in self.playingButtons:
                         if button.highlighted:
                             self.handle_button_action(button.text)
@@ -109,8 +105,7 @@ class Game:
 
     def step_handler(self):
         if self.state == IDLE:
-            # Perform the strategy test
-            self.solver = Solver(self.board.get_board_state())
+            self.solver = Solver(self.board)
             strategies = [self.solver.naked_singles, self.solver.hidden_singles, self.solver.naked_pairs]
 
             for strategy in strategies:
@@ -123,9 +118,15 @@ class Game:
                 print('No strategy found')
 
         elif self.state == STRATEGY_SUCCESSFUL:
-            # Update the board based on the strategy's results
-            helpers.set_cells(self.board.current_board, self.strategy_result.solved_candidates)
-            self.solver = Solver(self.board.get_board_state())
+
+            if self.strategy_result.eliminated_candidates:
+                self.board.possibles = self.solver.remove_candidates(self.board,
+                                                                     self.strategy_result.eliminated_candidates)
+
+            if self.strategy_result.solved_cells:
+                helpers.set_cells(self.board, self.strategy_result.solved_cells)
+                self.board.possibles = self.solver.update_possibles(self.board)
+
             self.state = IDLE  # Prepare for the next strategy
 
         elif self.state == BOARD_UPDATING:
@@ -142,7 +143,7 @@ class Game:
 
     def playing_draw(self):
         if self.actionMade:
-            self.window.fill(WHITE)
+            self.window.fill(DARKMODE)
 
             if self.selected:
                 self.draw_highlight(self.selected)
@@ -151,7 +152,8 @@ class Game:
                 button.draw(self.window)
 
             if self.state == STRATEGY_SUCCESSFUL:
-                self.draw_highlight_solved_candidates()
+                self.draw_highlight_candidates()
+                self.draw_highlight_cells()
                 self.draw_solved_text()
 
             self.draw_board_numbers()
@@ -179,11 +181,12 @@ class Game:
             GRID_POS[0] + (col * CELL_SIZE) + ((candidate - 1) % 3 * MINI_CELL_SIZE),
             GRID_POS[1] + (row * CELL_SIZE) + ((candidate - 1) // 3 * MINI_CELL_SIZE)
         ]
-        self.text_to_screen(str(candidate), pos, 'cand_size', BLACK)
+        self.text_to_screen(str(candidate), pos, 'cand_size', WHITE)
 
     def load_test_puzzle(self, testpuzzle):
         self.board.puzzle = solution_count.str2grid(testpuzzle)
         self.board.board = solution_count.str2grid(testpuzzle)
+        self.state = IDLE
 
     def get_puzzle(self, difficulty):
         html_doc = requests.get('https://nine.websudoku.com/?level={}'.format(difficulty)).content
@@ -205,13 +208,14 @@ class Game:
 
             if 'value' in cell:
                 # Extract the value attribute from the cell; it's assumed to be a single digit
-                value = cell.split('"')[-2]  # The value is assumed to be between the last pair of quotes
+                value = cell.split('"')[-2]
                 board_str += value
             else:
-                board_str += '.'  # Represent empty cells with '.'
+                board_str += '.'
 
         self.board.load_board(helpers.str2grid(board_str))
-        self.solver = Solver(self.board.get_board_state())
+        self.board.possibles = self.solver.update_possibles(self.board)
+        self.state = IDLE
 
     def get_puzzle2(self, difficulty):
 
@@ -245,7 +249,7 @@ class Game:
                 board_str += '.'  # Represent empty cells with '.'
 
         self.board.load_board(helpers.str2grid(board_str))
-        self.solver = Solver(self.board.get_board_state())
+        self.board.possibles = self.solver.update_possibles(self.board)
 
     def draw_rect(self, color, pos, size):
         pg.draw.rect(self.window, color, (*pos, *size))
@@ -255,14 +259,14 @@ class Game:
 
     def draw_board_numbers(self):
         # common keys are merged, but the last dict overwrites, so the board.puzzle numbers are still blue
-        full_board = {**{coord: (value, BLACK) for coord, value in self.board.current_board.items()},
-                      **{coord: (value, DARKBLUE) for coord, value in self.board.puzzle.items()}}
+        full_board = {**{coord: (value, BLUE) for coord, value in self.board.board.items()},
+                      **{coord: (value, LIGHTRED) for coord, value in self.board.puzzle.items()}}
 
         for (row, col), (value, color) in full_board.items():
             self.draw_cell_number(value, row, col, color)
 
     def draw_candidates_numbers(self):
-        for (row, col), candidates in self.solver.possibles.items():
+        for (row, col), candidates in self.board.possibles.items():
             for candidate in candidates:
                 self.draw_cell_candidates(candidate, row, col)
 
@@ -276,10 +280,10 @@ class Game:
                        (GRID_POS[0] + (row // 3 * 3 * CELL_SIZE), GRID_POS[1] + (col // 3 * 3 * CELL_SIZE)),
                        (3 * CELL_SIZE, 3 * CELL_SIZE))
 
-        current_num = self.board.current_board.get((col, row))
+        current_num = self.board.board.get((col, row))
 
         if current_num:
-            for (i, j), num in (self.board.current_board.items() or self.board.puzzle.items()):
+            for (i, j), num in (self.board.board.items() or self.board.puzzle.items()):
                 if num == current_num and (i, j) != (row, col):
                     self.draw_rect(LIGHTGRAY,
                                    (GRID_POS[0] + j * CELL_SIZE, GRID_POS[1] + i * CELL_SIZE),
@@ -306,10 +310,10 @@ class Game:
 
             # coordinates
             pos = [GRID_POS[0] + (i * CELL_SIZE), GRID_POS[1] - 55]
-            self.text_to_screen(str(i + 1), pos, 'coord_size', BLACK)
+            self.text_to_screen(str(i + 1), pos, 'coord_size', WHITE)
 
             pos = [GRID_POS[0] - 55, GRID_POS[1] + (i * CELL_SIZE)]
-            self.text_to_screen(helpers.int2char(i), pos, 'coord_size', BLACK)
+            self.text_to_screen(helpers.int2char(i), pos, 'coord_size', WHITE)
 
         # strategy list board
         pg.draw.rect(self.window,
@@ -322,25 +326,39 @@ class Game:
                      BLACK,
                      (STT_RESULT_POS[0], STT_RESULT_POS[1], *STRATEGY_TEXT_SIZE), THICK_LINE)
 
-    def draw_highlight_solved_cells(self):
-        for (row, col), cell_value in self.strategy_result.solved_cells:
-            pos = [GRID_POS[0] + (col * CELL_SIZE), GRID_POS[1] + (row * CELL_SIZE)]
-            pg.draw.rect(self.window, LIGHTGREEN, (pos[0], pos[1], CELL_SIZE, CELL_SIZE))
+    def draw_highlight_cells(self):
+        if self.strategy_result.highlight_cells:
+            for (row, col), cell_value in self.strategy_result.highlight_cells:
+                pos = [GRID_POS[0] + (col * CELL_SIZE), GRID_POS[1] + (row * CELL_SIZE)]
+                pg.draw.rect(self.window, LIGHTGREEN, (pos[0], pos[1], CELL_SIZE, CELL_SIZE))
 
-    def draw_highlight_solved_candidates(self):
-        if self.strategy_result.solved_candidates:
-            for (row, col), candidate in self.strategy_result.solved_candidates:
+        # if self.strategy_result.solved_cells:
+        #     for (row, col), cell_value in self.strategy_result.solved_cells:
+        #         pos = [GRID_POS[0] + (col * CELL_SIZE), GRID_POS[1] + (row * CELL_SIZE)]
+        #         pg.draw.rect(self.window, LIGHTGREEN, (pos[0], pos[1], CELL_SIZE, CELL_SIZE))
+
+    def draw_highlight_candidates(self):
+        if self.strategy_result.highlight_candidates:
+            for (row, col), candidate in self.strategy_result.highlight_candidates:
                 pos = [
                     GRID_POS[0] + (col * CELL_SIZE) + ((candidate - 1) % 3) * MINI_CELL_SIZE,
                     GRID_POS[1] + (row * CELL_SIZE) + ((candidate - 1) // 3) * MINI_CELL_SIZE
                 ]
-                self.draw_rect(LIGHTYELLOW, pos, (MINI_CELL_SIZE, MINI_CELL_SIZE))
+                self.draw_rect(GREEN, pos, (MINI_CELL_SIZE, MINI_CELL_SIZE))
+
+        if self.strategy_result.eliminated_candidates:
+            for (row, col), candidate in self.strategy_result.eliminated_candidates:
+                pos = [
+                    GRID_POS[0] + (col * CELL_SIZE) + ((candidate - 1) % 3) * MINI_CELL_SIZE,
+                    GRID_POS[1] + (row * CELL_SIZE) + ((candidate - 1) // 3) * MINI_CELL_SIZE
+                ]
+                self.draw_rect(YELLOW, pos, (MINI_CELL_SIZE, MINI_CELL_SIZE))
 
     def draw_solved_text(self):
         pos = [STT_LIST_POS[0] + 10, STT_LIST_POS[1] + 230]
         for solved_cell_text in self.strategy_result.description:
             pos[1] += 25
-            self.text_to_screen(solved_cell_text, pos, 'stt_size', BLACK)
+            self.text_to_screen(solved_cell_text, pos, 'stt_size', WHITE)
 
     def draw_strategy_list_section(self, title, strats, start_pos):
         # Initial positions for list and indicator
@@ -348,7 +366,7 @@ class Game:
         pos_indicator = [start_pos[0] + 200, start_pos[1] + 10]
 
         # Draw the title
-        self.text_to_screen(title, pos_list, 'stt_size', BLACK)
+        self.text_to_screen(title, pos_list, 'stt_size', WHITE)
         pos_list[1] += 10
         pos_indicator[1] += 10
 
@@ -365,7 +383,7 @@ class Game:
             style = 'stt_size_bold' if is_active_strategy else 'stt_size'
 
             # Draw the strategy name
-            self.text_to_screen(strategy, pos_list, style, BLACK)
+            self.text_to_screen(strategy, pos_list, style, WHITE)
 
             # If this is the successful strategy, print 'YES' and update the flag
             if is_active_strategy:
@@ -400,8 +418,8 @@ class Game:
                     print("Not solved!")
 
             case 'Load':
-                pass
-                # self.load_test_puzzle(test_boards.TESTBOARD_npair)
+                self.board.load_board(helpers.str2grid(test_boards.TESTBOARD_npair))
+                self.board.possibles = self.solver.update_possibles(self.board)
 
             case 'Easy':
                 self.get_puzzle('1')
@@ -434,27 +452,28 @@ class Game:
 
     def text_to_screen(self, text, pos, size, colour):
         font = None
-        if size == 'board_num_size':
-            font = self.board_num_font.render(text, True, colour)
-            fontWidth = font.get_width()
-            fontHeight = font.get_height()
-            pos[0] += (CELL_SIZE - fontWidth) // 2
-            pos[1] += (CELL_SIZE - fontHeight) // 2
-        elif size == 'coord_size':
-            font = self.coord_font.render(text, True, colour)
-            fontWidth = font.get_width()
-            fontHeight = font.get_height()
-            pos[0] += (CELL_SIZE - fontWidth) // 2
-            pos[1] += (CELL_SIZE - fontHeight) // 2
-        elif size == 'cand_size':
-            font = self.cand_font.render(text, True, colour)
-            fontWidth = font.get_width()
-            fontHeight = font.get_height()
-            pos[0] += (MINI_CELL_SIZE - fontWidth) // 2
-            pos[1] += (MINI_CELL_SIZE - fontHeight) // 2
-        elif size == 'stt_size':
-            font = self.stt_font.render(text, True, colour)
-        elif size == 'stt_size_bold':
-            font = self.stt_bold_font.render(text, True, colour)
+        match size:
+            case 'board_num_size':
+                font = self.board_num_font.render(text, True, colour)
+                fontWidth = font.get_width()
+                fontHeight = font.get_height()
+                pos[0] += (CELL_SIZE - fontWidth) // 2
+                pos[1] += (CELL_SIZE - fontHeight) // 2
+            case 'coord_size':
+                font = self.coord_font.render(text, True, colour)
+                fontWidth = font.get_width()
+                fontHeight = font.get_height()
+                pos[0] += (CELL_SIZE - fontWidth) // 2
+                pos[1] += (CELL_SIZE - fontHeight) // 2
+            case 'cand_size':
+                font = self.cand_font.render(text, True, colour)
+                fontWidth = font.get_width()
+                fontHeight = font.get_height()
+                pos[0] += (MINI_CELL_SIZE - fontWidth) // 2
+                pos[1] += (MINI_CELL_SIZE - fontHeight) // 2
+            case 'stt_size':
+                font = self.stt_font.render(text, True, colour)
+            case 'stt_size_bold':
+                font = self.stt_bold_font.render(text, True, colour)
 
         self.window.blit(font, pos)
