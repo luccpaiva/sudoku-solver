@@ -1,5 +1,4 @@
 import random
-import time
 from copy import deepcopy
 from itertools import combinations
 from typing import List, Tuple, Set
@@ -10,6 +9,7 @@ MAX_SOLUTIONS = 10
 
 
 class Sudoku:
+    # noinspection PyPep8Naming
     def __init__(self, grid: List, is_X_Sudoku=False):
         n = len(grid)
         # assert len(grid[0]) == n, "Grid is not square. n_rows=%d, n_columns=%d" % (n, len(grid[0]))
@@ -29,10 +29,10 @@ class Sudoku:
         self.candidates = candidates
 
     def __repr__(self) -> str:
-        repr = ''
+        str_repr = ''
         for row in self.grid:
-            repr += str(row) + '\n'
-        return repr
+            str_repr += str(row) + '\n'
+        return str_repr
 
     def get_row(self, r: int) -> List[int]:
         return self.grid[r]
@@ -40,7 +40,8 @@ class Sudoku:
     def get_col(self, c: int) -> List[int]:
         return [row[c] for row in self.grid]
 
-    def get_box_inds(self, r: int, c: int) -> List[Tuple[int, int]]:
+    @staticmethod
+    def get_box_inds(r: int, c: int) -> List[Tuple[int, int]]:
         inds_box = []
         i0 = (r // BOX_SIZE) * BOX_SIZE  # get first row index
         j0 = (c // BOX_SIZE) * BOX_SIZE  # get first column index
@@ -89,7 +90,8 @@ class Sudoku:
         valid = nums.difference(used)
         return valid
 
-    def counting(self, arr: List[int], m=SIZE) -> List[int]:
+    @staticmethod
+    def counting(arr: List[int], m=SIZE) -> List[int]:
         """ count occurances in an array """
         count = [0] * (m + 1)
         for x in arr:
@@ -121,7 +123,7 @@ class Sudoku:
                 return False, num + 1  # no value or candidate exists
         return True, missing
 
-    def check_done(self, num_boxes=SIZE) -> bool:
+    def check_done(self) -> bool:
         """ check if each row/column/box only has unique elements"""
         # check rows
         for i in range(self.n):
@@ -139,7 +141,7 @@ class Sudoku:
         return True
 
     def get_candidates(self, start, end):
-        " get candidates within two corners of a rectangle/column/row"
+        # get candidates within two corners of a rectangle/column/row
         candidates = set()
         for i in range(start[0], end[0] + 1):
             for j in range(start[1], end[1] + 1):
@@ -183,7 +185,7 @@ class Sudoku:
                     return False, '%d not placeable in box (%d, %d)' % (missing_num, i0, j0)
         return True, None
 
-    ## ------- Candidate functions -------- ##
+    # ------- Candidate functions -------- ##
     def place_and_erase(self, r: int, c: int, x: int, constraint_prop=True):
         """ remove x as a candidate in the grid in this row, column and box"""
         # place candidate x
@@ -198,7 +200,7 @@ class Sudoku:
             i, j = erased.pop()
             inds_neighbours = self.get_neighbour_inds(i, j, flatten=False)
             for inds in inds_neighbours:
-                uniques = self.get_unique(inds, type=[1, 2, 3])
+                uniques = self.get_unique(inds, unit_type=[1, 2, 3])
                 for inds_combo, combo in uniques:
                     # passing back the erased here doesn't seem to be very helpful
                     self.set_candidates(combo, inds_combo)
@@ -216,10 +218,10 @@ class Sudoku:
         erased = []
         for i, j in indices:
             edited = False
-            if ((i, j) in keep):
+            if (i, j) in keep:
                 continue
             for x in nums:
-                if (x in self.candidates[i][j]):
+                if x in self.candidates[i][j]:
                     self.candidates[i][j].remove(x)
                     edited = True
             if edited:
@@ -245,23 +247,23 @@ class Sudoku:
                 count[num].append((i, j))
         return count
 
-    def get_unique(self, indices, type=(0, 1, 2)):
+    def get_unique(self, indices, unit_type=(0, 1, 2)):
         # See documentation at https://www.sudokuwiki.org/Hidden_Candidates
         groups = self.count_candidates(indices)
         uniques = []  # final set of unique candidates to return
         uniques_temp = {2: [], 3: []}  # potential unique candidates
         for num, group_inds in enumerate(groups):
             c = len(group_inds)
-            if c == 1 and (1 in type):
+            if c == 1 and (1 in unit_type):
                 uniques.append((group_inds, [num]))
-            if c == 2 and ((2 in type) or (3 in type)):
+            if c == 2 and ((2 in unit_type) or (3 in unit_type)):
                 uniques_temp[2].append(num)
-            if c == 3 and (3 in type):
+            if c == 3 and (3 in unit_type):
                 uniques_temp[3].append(num)
         uniques_temp[3] += uniques_temp[2]
         # check for matching combos (both hidden and naked)
         for c in [2, 3]:
-            if c not in type:
+            if c not in unit_type:
                 continue
             # make every possible combination
             for combo in list(combinations(uniques_temp[c], c)):
@@ -351,7 +353,7 @@ class Sudoku:
             # apply strategies
             for inds in inds_set:
                 # hidden/naked singles/pairs/triples
-                uniques = self.get_unique(inds, type=[1, 2])
+                uniques = self.get_unique(inds, unit_type=[1, 2])
                 for inds_combo, combo in uniques:
                     self.erase(combo, inds, inds_combo)
                     self.set_candidates(combo, inds_combo)
@@ -366,6 +368,7 @@ class Sudoku:
                 #     self.erase(nums, inds, inds_keep)
 
 
+# noinspection PyPep8Naming
 def grid_equal(A, B):
     """ Check if 2 grids are equal or not"""
     n = len(A)
@@ -378,7 +381,8 @@ def grid_equal(A, B):
     return True
 
 
-def get_nonempty(A):
+# noinspection PyPep8Naming
+def get_nonempty(A: list[list[int]]):
     n = len(A)
     m = len(A[0])
     nonempty = []
@@ -435,12 +439,13 @@ def str2grid(string: str) -> List[List[int]]:
 
 
 def print_grid(grid: List[List[int]]) -> None:
-    repr = ''
+    str_grid = ''
     for row in grid:
-        repr += str(row) + '\n'
-    print(repr[:-1])
+        str_grid += str(row) + '\n'
+    print(str_grid[:-1])
 
 
+# noinspection PyPep8Naming
 def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
     """
     idea based on https://dev.to/aspittel/how-i-finally-wrote-a-sudoku-solver-177g
@@ -484,7 +489,7 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
                     for i in range(game.n):
                         for j in range(game.n):
                             options = game.candidates[i][j]
-                            if len(options) < min_guesses[0] and len(options) > 1:
+                            if min_guesses[0] > len(options) > 1:
                                 min_guesses = (len(options), (i, j))
                     i, j = min_guesses[1]
                     options = game.candidates[i][j]
@@ -539,11 +544,12 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
     return solution_set, solved, info
 
 
-def count_solutions(puzzle):
+# noinspection PyUnresolvedReferences
+def count_solutions(puzzle, name):
     grid = deepcopy(puzzle)
     print("*******************")
     print(grid2str(grid))
-    ## make multiple solutions
+    # make multiple solutions
     nonempty = get_nonempty(grid)
     for ij in random.sample(nonempty, k=0):  # k=number of values to set to zero
         i = ij // 9
@@ -555,23 +561,24 @@ def count_solutions(puzzle):
     verbose = False
     all_solutions = True
 
-    t0 = time.time()
-    nclues = 81 - grid2str(grid).count('.') - grid2str(grid).count('0')
-    print("num clues: %d" % nclues)
-    ## solve
+    # t0 = time.time()
+    # nclues = 81 - grid2str(grid).count('.') - grid2str(grid).count('0')
+    # print("num clues: %d" % nclues)
+
+    # solve
     solution_set, done, info = solveSudoku(
         grid,
         verbose=verbose,
         all_solutions=all_solutions
     )
     # solver_solution, done, info = solveSudokuBrute(puzzle)
-    deltaT = time.time() - t0
-    print("total time: %.5fs" % (deltaT))
+    # deltaT = time.time() - t0
+    # print("total time: %.5fs" % (deltaT))
     # for key in ['calls', 'max depth', 'nsolutions']:
     #     print("%-14s: %d" % (key, info[key]))
 
     if len(solution_set) == 1:
-        print("This puzzle has an unique solution")
+        print(name + ": This puzzle has an unique solution")
         print(*solution_set, sep="\n")
     elif len(solution_set) <= MAX_SOLUTIONS:
         print("This puzzle has %d distinct solutions" % len(solution_set))

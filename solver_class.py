@@ -1,8 +1,14 @@
-from itertools import combinations
 
-import helpers
+import utils
 from strat_handler import StratHandler
 import pprint
+
+from strats import naked_singles
+from strats import hidden_singles
+
+from strats import format_naked_hidden_sets_text
+from strats import naked_sets_find, naked_sets_process
+from strats import hidden_sets_find, hidden_sets_process
 
 
 class Solver:
@@ -13,14 +19,14 @@ class Solver:
 
     def update_possibles(self, current_board):
 
-        # in the case a cell was set, first eliminate the keys from the possibles:
+        # In the case a cell was set, first eliminate the keys from the possibles:
         current_board.possibles = {key: value for key, value in current_board.possibles.items() if
                                    key not in current_board.board}
 
         for cell in current_board.possibles.keys():
             visible_units = self.get_visible_cells(cell)
             visible_cells = set.union(visible_units['row'], visible_units['col'], visible_units['box'])
-            taken_numbers = helpers.get_cells(current_board.board, *visible_cells)
+            taken_numbers = utils.get_cells(current_board.board, *visible_cells)
 
             current_board.possibles[cell] -= taken_numbers
 
@@ -65,58 +71,18 @@ class Solver:
 
         """
 
-        units = {'row': {i: set() for i in range(9)},
-                 'col': {i: set() for i in range(9)},
-                 'box': {i: set() for i in range(9)}}
+        units = {'Arow': {i: set() for i in range(9)},
+                 'Ccol': {i: set() for i in range(9)},
+                 'Bbox': {i: set() for i in range(9)}}
 
         for (row, col) in self.possibles.keys():
             box_index = (row // 3) * 3 + col // 3
 
-            units['row'][row].add((row, col))
-            units['col'][col].add((row, col))
-            units['box'][box_index].add((row, col))
+            units['Arow'][row].add((row, col))
+            units['Ccol'][col].add((row, col))
+            units['Bbox'][box_index].add((row, col))
 
         return units
-
-    @staticmethod
-    def get_cell_unit_keys(cell):
-        """Return the keys for the units the cell belongs to.
-        example:
-            cell = (0, 0)
-            unit_keys = {'row': 0, 'col': 0, 'box': 0}
-            cell = (3, 5)
-            unit_keys = {'row': 3, 'col': 5, 'box': 1}
-        """
-        row, col = cell
-        box = (row // 3) * 3 + (col // 3)
-        return {'row': row, 'col': col, 'box': box}
-
-    def get_common_units(self, cell1, cell2):
-        """Return the common units for two cells if they exist, classified by unit type.
-        example:
-            cell1 = (0, 0)
-            cell2 = (0, 1)
-            common_units = {
-            'row': {(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), ..., (0, 8)},
-            'col': {(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), ..., (8, 0)},
-            'box': None}
-        """
-        unit_keys1 = self.get_cell_unit_keys(cell1)
-        unit_keys2 = self.get_cell_unit_keys(cell2)
-
-        common_units = {unit_type: None for unit_type in ['row', 'col', 'box']}
-
-        for unit_type in ['row', 'col', 'box']:
-            if unit_keys1[unit_type] == unit_keys2[unit_type]:
-                unit_key = unit_keys1[unit_type]
-                unit_cells = self.units[unit_type][unit_key]
-                common_units[unit_type] = unit_cells
-                common_units[unit_type] = unit_cells - {cell1, cell2}
-
-        if all(value is None for value in common_units.values()):
-            return None  # return None if all units are None
-
-        return common_units
 
     def board_solved(self):
         return len(self.board) == 81
@@ -128,15 +94,10 @@ class Solver:
 
         return current_board.possibles
 
+    # STRATEGIES
+    # ///////////////////////////////////////////////////////////////
     def naked_singles(self):
-        n_singles = []
-        for cell, possibles in self.possibles.items():
-            # Check if the cell has only one candidate
-            if len(possibles) == 1:
-                value = next(iter(possibles))
-                n_singles.append((cell, value))
-
-        n_singles_text = [f"{helpers.pos2cord(cell)} set to {value}." for cell, value in n_singles]
+        n_singles, n_singles_text = naked_singles(self.possibles)
         success = bool(n_singles)
 
         result = StratHandler('Naked Singles',
@@ -150,32 +111,7 @@ class Solver:
         return result
 
     def hidden_singles(self):
-        h_singles = []
-        h_singles_text = []
-
-        for cell, possibles in self.possibles.items():
-            units = self.get_visible_cells(cell)
-
-            hidden_in_units = []  # store the unit (row, column or box) where the cell is a hidden single
-            hidden_single = None
-
-            for unit_type, unit_cells in units.items():
-                possibles_in_unit = set()
-                for unit_cell in unit_cells:
-                    possibles_in_unit.update(self.possibles.get(unit_cell, set()))
-
-                hidden_singles = possibles - possibles_in_unit
-                if len(hidden_singles) == 1:
-                    hidden_single = hidden_singles.pop()
-                    hidden_in_units.append(unit_type)
-
-            # Check if the cell was a hidden single in multiple units
-            if hidden_in_units:
-                h_singles.append((cell, hidden_single))
-                text = helpers.format_hidden_single_text(cell,
-                                                         hidden_single,
-                                                         hidden_in_units) if hidden_in_units else None
-                h_singles_text.append(text)
+        h_singles, h_singles_text = hidden_singles(self.possibles, self.units)
 
         success = bool(h_singles)
 
@@ -189,158 +125,65 @@ class Solver:
 
         return result
 
-    def naked_pairs2(self):
-        n_pairs = {}
+    def naked_sets(self, set_filter):
 
-        for cell1, candidates1 in self.possibles.items():
-            if len(candidates1) == 2:
-                for cell2, candidates2 in self.possibles.items():
-                    if cell1 != cell2 and candidates1 == candidates2:
-                        common_units = self.get_common_units(cell1, cell2)
-                        if common_units:
-                            candidate_tuple = tuple(candidates1)
-                            cell_pair = frozenset([cell1, cell2])
+        for set_size in set_filter:
+            strat_name = None
+            match set_size:
+                case 2:
+                    strat_name = 'Naked Pairs'
+                case 3:
+                    strat_name = 'Naked Triples'
+                case 4:
+                    strat_name = 'Naked Quads'
 
-                            # Check if this pair already exists in the dictionary
-                            if cell_pair not in n_pairs:
-                                n_pairs[cell_pair] = {
-                                    'candidates': candidate_tuple,
-                                    'common_units': common_units
-                                }
+            naked_sets = naked_sets_find(self.possibles,
+                                         set_size,
+                                         self.units)
 
-                            else:
-                                # Update the existing common units for this pair
-                                n_pairs[cell_pair]['common_units'].update(common_units)
+            processed_naked_sets, highlight_list, eliminate_list = naked_sets_process(self.possibles,
+                                                                                      naked_sets)
 
-                            break  # it is a naked *pair*, so there won't be a third cell with the same candidates
+            # Double check if there is something to eliminate
+            success = bool(processed_naked_sets) and bool(eliminate_list)
 
-        valid_n_pairs = {}
+            if success:
+                n_pairs_text = format_naked_hidden_sets_text(processed_naked_sets,
+                                                             strat_name)
 
-        for pair, data in n_pairs.items():
-            candidates = data['candidates']
-            common_units = data['common_units']
+                return StratHandler(strat_name,
+                                    success,
+                                    None,
+                                    None,
+                                    highlight_list,
+                                    eliminate_list,
+                                    n_pairs_text)
 
-            valid_pair = False  # Flag to check if this pair is valid
+    def hidden_sets(self, set_filter):
 
-            # Check each unit individually within the common units
-            for unit, unit_cells in common_units.items():
-                if unit_cells is not None:  # Ensure the unit is not empty
-                    for cell in unit_cells:
-                        if cell not in pair and any(candidate in self.possibles[cell] for candidate in candidates):
-                            valid_pair = True
-                            break  # Break from the inner loop as we found the pair valid
+        for set_size in set_filter:
+            strat_name = None
+            match set_size:
+                case 2:
+                    strat_name = 'Hidden Pairs'
+                case 3:
+                    strat_name = 'Hidden Triples'
+                case 4:
+                    strat_name = 'Hidden Quads'
 
-                if valid_pair:
-                    break  # Break from the outer loop as we found the pair valid
+            hidden_sets = hidden_sets_find(self.possibles, set_size, self.units)
+            highlight_list, eliminate_list = hidden_sets_process(self.possibles, hidden_sets)
 
-            if valid_pair:
-                valid_n_pairs[pair] = data  # This naked pair is valid, add it to the valid_n_pairs
+            success = bool(hidden_sets) and bool(eliminate_list)
 
-        highlight_candidates_list = []
-        eliminated_candidates_list = []
+            if success:
+                h_pairs_text = format_naked_hidden_sets_text(hidden_sets,
+                                                             strat_name)
 
-        for pair, data in valid_n_pairs.items():
-            candidates = data['candidates']
-            common_units = data['common_units']
-
-            # Check each unit individually within the common units
-            for unit, unit_cells in common_units.items():
-                if unit_cells:  # Check if the unit is not empty
-                    # Since the unit is not empty, we add this pair to the highlight list
-                    for cell in pair:
-                        highlight_candidates_list.extend(
-                            [(cell, candidate) for candidate in candidates if candidate in self.possibles[cell]])
-
-                    # Proceed to gather eliminated candidates
-                    eliminated_candidates_list.extend(
-                        [(cell, candidate) for cell in unit_cells for candidate in candidates if
-                         candidate in self.possibles[cell]])
-                # If unit_cells is empty, we simply don't do anything, effectively skipping this unit
-
-        success = bool(valid_n_pairs)
-        n_pairs_text = helpers.format_naked_pairs_text(valid_n_pairs) if success else None
-
-        return StratHandler('Naked Pairs',
-                            success,
-                            None,
-                            None,
-                            highlight_candidates_list,
-                            eliminated_candidates_list,
-                            n_pairs_text)
-
-    def find_naked_sets(self):
-        candidates_for_naked_sets = {}
-        for cell, candidates in self.possibles.items():
-            if len(candidates) == 2:
-                candidate_tuple = tuple(candidates)
-                candidates_for_naked_sets.setdefault(candidate_tuple, []).append(cell)
-
-        naked_pairs = {
-            frozenset(pair): {
-                'candidates': candidates,
-                'common_units': self.get_common_units(*pair),
-            }
-            for candidates, cells in candidates_for_naked_sets.items()
-            for pair in combinations(cells, 2)
-            if self.get_common_units(*pair)
-        }
-        return naked_pairs
-
-    def validate_naked_set(self, pair, data):
-        """Check if the naked pair has common candidates in their units."""
-        candidates = data['candidates']
-        common_units = data['common_units']
-
-        for unit_cells in common_units.values():
-            if unit_cells is None:
-                continue
-            for cell in unit_cells:
-                if cell not in pair and any(candidate in self.possibles.get(cell, []) for candidate in candidates):
-                    return True
-        return False
-
-    def process_naked_sets(self, valid_naked_pairs):
-        """Highlight and eliminate candidates based on valid naked pairs."""
-        highlight_candidates_list = []
-        eliminated_candidates_list = []
-
-        for pair, data in valid_naked_pairs.items():
-            candidates = data['candidates']
-            common_units = data['common_units']
-
-            for unit_cells in common_units.values():
-                if not unit_cells:
-                    continue
-                pair_cells_highlight = [
-                    (cell, candidate) for cell in pair for candidate in candidates
-                    if candidate in self.possibles.get(cell, [])
-                ]
-                highlight_candidates_list.extend(pair_cells_highlight)
-
-                other_cells_eliminate = [
-                    (cell, candidate) for cell in unit_cells for candidate in candidates
-                    if cell not in pair and candidate in self.possibles.get(cell, [])
-                ]
-                eliminated_candidates_list.extend(other_cells_eliminate)
-
-        return highlight_candidates_list, eliminated_candidates_list
-
-    def naked_pairs(self):
-        naked_pairs = self.find_naked_sets()
-        valid_naked_pairs = {
-            pair: data for pair, data in naked_pairs.items()
-            if self.validate_naked_set(pair, data)
-        }
-
-        highlight_list, eliminate_list = self.process_naked_sets(valid_naked_pairs)
-        success = bool(valid_naked_pairs)
-        n_pairs_text = helpers.format_naked_pairs_text(valid_naked_pairs) if success else None
-        pprint.pprint(n_pairs_text)
-
-        return StratHandler('Naked Pairs',
-                            success,
-                            None,
-                            None,
-                            highlight_list,
-                            eliminate_list,
-                            n_pairs_text)
+                return StratHandler(strat_name,
+                                    success,
+                                    None,
+                                    None,
+                                    highlight_list,
+                                    eliminate_list,
+                                    h_pairs_text)

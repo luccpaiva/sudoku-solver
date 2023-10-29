@@ -1,16 +1,15 @@
-from itertools import chain, combinations
 
-# Constants
+# CONSTANTS
 # ///////////////////////////////////////////////////////////////
 FULL_SET = set(range(1, 10))
 
-# Type hints
+# TYPE HINTS
 # ///////////////////////////////////////////////////////////////
 Cell = tuple[int, int]
 BoardType = dict[Cell, int]
 
 
-# Conversion functions
+# CONVERSION FUNCTIONS
 # ///////////////////////////////////////////////////////////////
 def is_int(string):
     """Check if a string is an integer."""
@@ -27,6 +26,21 @@ def int2char(integer):
         return "J"
     else:
         return chr(65 + integer)
+
+
+def dict2grid(input_dict) -> list[list[int]]:
+    """Convert a dictionary to its string representation."""
+    # Initialize an empty board with '.' as placeholders
+    sudoku_board = [['.' for _ in range(9)] for _ in range(9)]
+
+    # Populate the board with your values
+    for (row, col), value in input_dict.items():
+        sudoku_board[row][col] = str(value)  # Convert int to str for concatenation later
+
+    # Convert the 2D list back to a single string representation
+    grid = str2grid(''.join(''.join(row) for row in sudoku_board))
+
+    return grid
 
 
 def char2int(char):
@@ -89,7 +103,7 @@ def unflatten(arr: list[int], n=9):
     return grid
 
 
-# Board functions
+# BOARD
 # ///////////////////////////////////////////////////////////////
 def get_cells(board: BoardType, *cells: Cell) -> set[int]:
     """Return a set of all values in the given cells."""
@@ -125,8 +139,7 @@ def print_possibles(board: BoardType):
 # ///////////////////////////////////////////////////////////////
 def format_hidden_single_text(cell: Cell, hidden_single, hidden_in_units):
     """Formats the descriptive text for a found hidden single."""
-    unit_names = {'row': 'row', 'col': 'column', 'box': 'box'}
-    units_text = ', '.join([unit_names[unit] for unit in hidden_in_units])
+    units_text = ', '.join([unit[1:] for unit in hidden_in_units])
 
     # If there are multiple units, use 'and' for the last one
     if len(hidden_in_units) > 1:
@@ -137,24 +150,24 @@ def format_hidden_single_text(cell: Cell, hidden_single, hidden_in_units):
     return text
 
 
-def format_naked_pairs_text(result_dict):
+def format_naked_hidden_sets_text(result_dict, naked_hidden_set_name):
     text = []
-    for pair, data in result_dict.items():
+    for conjugate, data in result_dict.items():
         candidates = "/".join(map(str, data['candidates']))
-        cells = "/".join([format_cell(cell) for cell in pair])
+        cells = "/".join([format_cell(cell) for cell in conjugate])
 
-        for unit_type, cells_to_remove_from in data['common_units'].items():
-            if cells_to_remove_from:  # Check if set is not empty
-                removal_cells = ", ".join([format_cell(cell) for cell in cells_to_remove_from])
-                text.append(f"NAKED PAIR ({unit_type}): {cells} removes {candidates} from {removal_cells}")
+        # If there are common units, add them to the text
+        if 'Naked' in naked_hidden_set_name:
+
+            for unit_type, cells_to_remove_from in data['common_units'].items():
+                if cells_to_remove_from:  # Check if set is not empty
+                    removal_cells = ", ".join([format_cell(c) for c in cells_to_remove_from])
+                    unit_name = unit_type[1:]
+                    text.append(
+                        f"{naked_hidden_set_name} ({unit_name}): {cells} removes {candidates} from {removal_cells}")
+
+        else:
+            removal_cells = ", ".join([format_cell(c) for c in conjugate])
+            text.append(f"{naked_hidden_set_name} {cells} removes {candidates} from {removal_cells}")
 
     return text
-
-
-# Solver functions
-# ///////////////////////////////////////////////////////////////
-def powerset(iterable):
-    """Return a powerset of the given iterable."""
-    # powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)
-    s = set(iterable)  # allows duplicate elements
-    return chain.from_iterable(combinations(s, r) for r in range(1, len(s) + 1))
