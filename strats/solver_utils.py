@@ -1,45 +1,27 @@
-import utils
-from itertools import combinations
-
-
-def format_naked_hidden_sets_text(result_dict, naked_hidden_set_name):
-    text = []
-    for conjugate, data in result_dict.items():
-        candidates = "/".join(map(str, data['candidates']))
-        cells = "/".join([utils.format_cell(cell) for cell in conjugate])
-
-        # If there are common units, add them to the text
-        if 'Naked' in naked_hidden_set_name:
-
-            for unit_type, cells_to_remove_from in data['common_units'].items():
-                if cells_to_remove_from:  # Check if set is not empty
-                    removal_cells = ", ".join([utils.format_cell(c) for c in cells_to_remove_from])
-                    unit_name = unit_type[1:]
-                    text.append(
-                        f"{naked_hidden_set_name} ({unit_name}): {cells} removes {candidates} from {removal_cells}")
-
-        else:
-            removal_cells = ", ".join([utils.format_cell(c) for c in conjugate])
-            text.append(f"{naked_hidden_set_name} {cells} removes {candidates} from {removal_cells}")
-
-    return text
-
-
-def format_hidden_single_text(cell, hidden_single, hidden_in_units):
-    """Formats the descriptive text for a found hidden single."""
-    units_text = ', '.join([unit[1:] for unit in hidden_in_units])
-
-    # If there are multiple units, use 'and' for the last one
-    if len(hidden_in_units) > 1:
-        last_comma_idx = units_text.rfind(',')
-        units_text = units_text[:last_comma_idx] + ' and' + units_text[last_comma_idx + 1:]
-
-    text = f"{utils.pos2cord(cell)} set to {hidden_single}. Unique in {units_text}"
-    return text
+from itertools import combinations, chain
 
 
 def get_combinations(iterable, r):
+    """Return r length subsequences of elements from the input iterable."""
     return combinations(iterable, r)
+
+
+def get_chained_combinations(iterable, lengths):
+    """
+    Chain together multiple combination iterators of different lengths.
+
+    Parameters:
+    iterable: An iterable of elements to combine.
+    lengths: A list of different lengths of combinations to generate.
+
+    Returns:
+    An iterator that yields the combinations of the specified lengths.
+    """
+    # Generate a list of combination iterators for each specified length
+    combo_iterators = [combinations(iterable, length) for length in lengths]
+
+    # Chain all iterators into a single iterator and return it
+    return chain(*combo_iterators)
 
 
 def get_cell_unit_keys(cell):
@@ -55,14 +37,24 @@ def get_cell_unit_keys(cell):
     return {'Arow': row, 'Bbox': box, 'Ccol': col}
 
 
+def check_same_units(cells, unit_type):
+    first_cell_unit = get_cell_unit_keys(cells[0])[unit_type]
+    for cell in cells[1:]:
+        if get_cell_unit_keys(cell)[unit_type] != first_cell_unit:
+            return False
+
+    return True
+
+
 def get_common_units(all_units, *cells):
     """Return the common units for multiple cells if they exist, classified by unit type.
+    Since now dictionaries are ordered by key, we want the box to be row to be checked first, hence _A_row, _B_box...
     example:
         cells = [(0, 0), (0, 1)]
         common_units = {
-        'row': ((0, 0), (0, 1), (0, 2), (0, 3), (0, 4), ..., (0, 8)),
-        'col': ((0, 0), (1, 0), (2, 0), (3, 0), (4, 0), ..., (8, 0)),
-        'box': None}
+        'Arow': ((0, 0), (0, 1), (0, 2), (0, 3), (0, 4), ..., (0, 8)),
+        'Bbox': ((0, 0), (1, 0), (2, 0), (3, 0), (4, 0), ..., (8, 0)),
+        'Ccol': None}
     """
     # Get the unit keys for all cells
     cells_unit_keys = [get_cell_unit_keys(cell) for cell in cells]
@@ -71,7 +63,7 @@ def get_common_units(all_units, *cells):
 
     # Iterate over each unit type
 
-    for unit_type in ['Arow', 'Ccol', 'Bbox']:
+    for unit_type in ['Arow', 'Bbox', 'Ccol']:
         # Check if all cells belong to the same unit for the current unit type
         unit_key = cells_unit_keys[0][unit_type]
         if all(unit_key == cell_unit_keys[unit_type] for cell_unit_keys in cells_unit_keys):
@@ -85,3 +77,13 @@ def get_common_units(all_units, *cells):
         return None
 
     return common_units
+
+
+def get_candidates_dict(board, cells):
+    """Return a dictionary containing the candidates for the list of cells."""
+    candidates_dict = {}
+    for unit_cell in cells:
+        for _ in board.get(unit_cell, []):
+            candidates_dict.setdefault(_, []).append(unit_cell)
+
+    return candidates_dict

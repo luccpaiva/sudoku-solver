@@ -31,9 +31,22 @@ def hidden_singles(board, all_units):
 
         if hidden_in_units:
             h_singles.append((cell, hidden_single))
-            text = utils.format_hidden_single_text(cell,
-                                                   hidden_single,
-                                                   hidden_in_units) if hidden_in_units else None
+            text = format_hidden_single_text(cell,
+                                             hidden_single,
+                                             hidden_in_units) if hidden_in_units else None
             h_singles_text.append(text)
 
     return h_singles, h_singles_text
+
+
+def format_hidden_single_text(cell, hidden_single, hidden_in_units):
+    """Formats the descriptive text for a found hidden single."""
+    units_text = ', '.join([unit[1:] for unit in hidden_in_units])
+
+    # If there are multiple units, use 'and' for the last one
+    if len(hidden_in_units) > 1:
+        last_comma_idx = units_text.rfind(',')
+        units_text = units_text[:last_comma_idx] + ' and' + units_text[last_comma_idx + 1:]
+
+    text = f"{utils.pos2cord(cell)} set to {hidden_single}. Unique in {units_text}"
+    return text

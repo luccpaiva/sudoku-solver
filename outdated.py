@@ -601,3 +601,49 @@
 #                           h_singles_text)
 #
 #     return result
+
+# def intersection_removal2(board, all_units):
+#     box_reductions = {}
+#     pointing_pairs = {}
+#
+#     for unit_type, unit_cells in all_units.items():
+#         if not unit_cells or unit_type == 'Bbox':
+#             continue
+#
+#         for unit_index, unit in unit_cells.items():
+#             candidates_dict = solver_utils.get_candidates_dict(board, unit)
+#
+#             for candidate, candidate_cells_list in candidates_dict.items():
+#                 cells_combo = list(solver_utils.get_chained_combinations(candidate_cells_list, [2, 3]))
+#
+#                 for combination in cells_combo:
+#                     # Check if the combination is in the same box
+#                     if solver_utils.check_same_units(combination, 'Bbox'):
+#                         # Now check if the rest of the box has the candidate
+#                         box_index = solver_utils.get_cell_unit_keys(combination[0])['Bbox']
+#                         cells_in_current_box = list((_ for _ in all_units['Bbox'][box_index] if _ not in combination))
+#
+#                         candidate_box_cells = tuple()
+#                         for remaining_box_cell in cells_in_current_box:
+#                             if candidate in board.get(remaining_box_cell, []):
+#                                 candidate_box_cells += (remaining_box_cell,)
+#
+#                         if candidate_box_cells and len(candidate_cells_list) == len(combination):
+#                             box_reductions[combination] = {
+#                                 'unit_type': unit_type,
+#                                 'unit_index': unit_index,
+#                                 'candidate': candidate,
+#                                 'cells': candidate_box_cells,
+#                                 'box': box_index,
+#                             }
+#
+#                         if not candidate_box_cells and len(candidate_cells_list) > len(combination):
+#                             pointing_pairs[combination] = {
+#                                 'unit_type': unit_type,
+#                                 'unit_index': unit_index,
+#                                 'candidate': candidate,
+#                                 'cells': list((_ for _ in candidate_cells_list if _ not in combination)),
+#                                 'box': box_index,
+#                             }
+#
+#     return pointing_pairs, box_reductions

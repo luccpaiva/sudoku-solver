@@ -1,3 +1,4 @@
+from utils import format_cell
 import strats.solver_utils as solver_utils
 
 
@@ -12,10 +13,7 @@ def hidden_sets_find(board, set_size, all_units):
             if not unit_cells:
                 continue
 
-            candidates_dict = {}
-            for unit_cell in unit_cells:
-                for _ in board.get(unit_cell, []):
-                    candidates_dict.setdefault(_, []).append(unit_cell)
+            candidates_dict = solver_utils.get_candidates_dict(board, unit_cells)
 
             # Include also the current cell candidates
             for candidate in board.get(current_cell, []):
@@ -60,12 +58,22 @@ def hidden_sets_process(board, hidden_set):
 
         for cell in common_units:
             cell_possibles = set(board.get(cell, []))
-            # Candidates to eliminate are those not in the hidden set candidates
+
             candidates_eliminate = cell_possibles - hidden_set_candidates
             eliminated_candidates_list.extend((cell, candidate) for candidate in candidates_eliminate)
 
-            # Candidates to highlight are those in the hidden set candidates
             highlight_candidates = cell_possibles & hidden_set_candidates
             highlight_candidates_list.extend((cell, candidate) for candidate in highlight_candidates)
 
     return highlight_candidates_list, eliminated_candidates_list
+
+
+def format_hidden_sets_text(result_dict, naked_hidden_set_name):
+    text = []
+    for conjugate, data in result_dict.items():
+        cells = "/".join([format_cell(cell) for cell in conjugate])
+
+        removal_cells = ", ".join([format_cell(c) for c in conjugate])
+        text.append(f"{naked_hidden_set_name} {cells} removes remaining candidates from {removal_cells}")
+
+    return text

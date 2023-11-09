@@ -1,14 +1,17 @@
 import sys
 
 import requests
+import pygame as pg
 from bs4 import BeautifulSoup
 
+import utils
 from settings import *
-import solution_count
+from solution_count import count_solutions
 import test_boards
-from board_class import *
-from solver_class import *
-from button_class import *
+
+from board_class import Board
+from solver_class import Solver
+from button_class import Button
 
 
 class Game:
@@ -19,9 +22,9 @@ class Game:
         pg.display.set_caption('Sudoku Solver by Lucas Paiva')
         self.clock = pg.time.Clock()
         self.window = pg.display.set_mode((WIDTH, HEIGHT), display=1)
-        self.board_num_font = pg.font.SysFont('Bahnschrift', CELL_SIZE // 2)  # for puzzle numbers
-        self.coord_font = pg.font.SysFont('Bahnschrift', 25)  # for grid coordinate
-        self.cand_font = pg.font.SysFont('Bahnschrift', CELL_SIZE // 3)  # for candidate numbers
+        self.board_num_font = pg.font.SysFont('Arial', CELL_SIZE // 2)  # for puzzle numbers
+        self.coord_font = pg.font.SysFont('Arial', 25)  # for grid coordinate
+        self.cand_font = pg.font.SysFont('Arial', CELL_SIZE // 3)  # for candidate numbers
         self.stt_font = pg.font.SysFont('Consolas', 15)  # for results
         self.stt_bold_font = pg.font.SysFont('Consolas', 15, bold=True)  # for highlighted results
 
@@ -44,7 +47,7 @@ class Game:
         # STRATEGIES VARIABLES
         # ///////////////////////////////////////////////////////////////
         self.basic_stt_list = ['Hidden Singles', 'Naked Pairs/Triples',
-                               'Hidden Pairs/Triples', 'Naked/Hidden Quads', 'Pointing Pairs', 'Box/Line Reduction']
+                               'Hidden Pairs/Triples', 'Naked/Hidden Quads', 'Pointing Pairs', 'Box-Reduction']
         self.tough_stt_list = ['X-Wing', 'Simple Colouring', 'Y-Wing', 'Rect Elim', 'Swordfish', 'XYZ-Wing', 'BUG']
 
         # BUTTONS
@@ -54,7 +57,7 @@ class Game:
 
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
-        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_npair5))
+        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_ppair4))
         self.board.possibles = self.solver.update_possibles(self.board)
 
     # GAME LOOP
@@ -96,9 +99,15 @@ class Game:
             if event.type == pg.KEYDOWN:
                 self.actionMade = True
 
-                if self.selected is not None and self.puzzle[self.selected[1]][self.selected[0]] == 0:
-                    if utils.is_int(event.unicode):
-                        self.cboard[self.selected[1]][self.selected[0]] = int(event.unicode)
+                if self.selected is not None and utils.is_int(event.unicode):
+                    if self.selected in self.board.puzzle.keys():
+                        print('Cannot change puzzle numbers')
+
+                    elif self.selected in self.board.board.keys() or self.selected in self.board.possibles.keys():
+                        utils.set_cells(self.board.board, [(self.selected, int(event.unicode))])
+                        self.board.possibles = self.solver.update_possibles(self.board)
+                        self.state = BOARD_UPDATING
+                        self.cellChanged = True
 
                 if event.key == pg.K_SPACE:
                     self.step_handler()
@@ -111,7 +120,10 @@ class Game:
                           lambda: self.solver.naked_sets([2, 3]),
                           lambda: self.solver.hidden_sets([2, 3]),
                           lambda: self.solver.naked_sets([4]),
-                          lambda: self.solver.hidden_sets([4])]
+                          lambda: self.solver.hidden_sets([4]),
+                          lambda: self.solver.intersection_removal('Pointing Pairs'),
+                          lambda: self.solver.intersection_removal('Box-Reduction'),
+                          ]
 
             for strategy in strategies:
                 self.strategy_result = strategy()
@@ -130,7 +142,7 @@ class Game:
                                          self.strategy_result.eliminated_candidates))
 
             if self.strategy_result.solved_cells:
-                utils.set_cells(self.board, self.strategy_result.solved_cells)
+                utils.set_cells(self.board.board, self.strategy_result.solved_cells)
                 self.board.possibles = self.solver.update_possibles(self.board)
 
             self.state = IDLE  # Prepare for the next strategy
@@ -190,8 +202,8 @@ class Game:
         self.text_to_screen(str(candidate), pos, 'cand_size', WHITE)
 
     def load_test_puzzle(self, testpuzzle):
-        self.board.puzzle = solution_count.str2grid(testpuzzle)
-        self.board.board = solution_count.str2grid(testpuzzle)
+        self.board.puzzle = utils.str2grid(testpuzzle)
+        self.board.board = utils.str2grid(testpuzzle)
         self.state = IDLE
 
     def get_puzzle(self, difficulty):
@@ -257,7 +269,7 @@ class Game:
             if cell and cell.get_text().isdigit():
                 board_str += cell.get_text()
             else:
-                board_str += '.'  # Represent empty cells with '.'
+                board_str += '.'
 
         self.board.load_board(utils.str2grid(board_str))
         self.board.possibles = self.solver.update_possibles(self.board)
@@ -273,6 +285,7 @@ class Game:
 
     def draw_circle(self, color, pos, radius):
         pg.draw.circle(self.window, color, pos, radius)
+        # gfxdraw.filled_circle(self.window, pos[0], pos[1], radius, color)
 
     def draw_line(self, start_pos, end_pos, width):
         pg.draw.line(self.window, BLACK, start_pos, end_pos, width)
@@ -291,7 +304,7 @@ class Game:
                 self.draw_cell_candidates(candidate, row, col)
 
     def draw_highlight(self, pos):
-        row, col = pos
+        col, row = pos
 
         # Highlight row, column, and box
         self.draw_rect(DARKBLUE, (GRID_POS[0], GRID_POS[1] + col * CELL_SIZE), (GRID_SIZE, CELL_SIZE))
@@ -310,12 +323,12 @@ class Game:
                                    (CELL_SIZE, CELL_SIZE))
 
         # Highlight active cell
-        self.draw_rect(DARKBLUE,
+        self.draw_rect(DARKGRAY,
                        (GRID_POS[0] + row * CELL_SIZE, GRID_POS[1] + col * CELL_SIZE),
                        (CELL_SIZE, CELL_SIZE))
 
     def draw_grid(self):
-        # grid
+        # Grid
         pg.draw.rect(self.window,
                      BLACK,
                      (GRID_POS[0], GRID_POS[1], GRID_SIZE, GRID_SIZE),
@@ -328,20 +341,20 @@ class Game:
                          (GRID_POS[0] + GRID_SIZE, GRID_POS[1] + (i * CELL_SIZE)),
                          2 if i % 3 == 0 else 1)
 
-            # coordinates
+            # Coordinates
             pos = [GRID_POS[0] + (i * CELL_SIZE), GRID_POS[1] - 55]
             self.text_to_screen(str(i + 1), pos, 'coord_size', WHITE)
 
             pos = [GRID_POS[0] - 55, GRID_POS[1] + (i * CELL_SIZE)]
             self.text_to_screen(utils.int2char(i), pos, 'coord_size', WHITE)
 
-        # strategy list board
+        # Strategy list board
         pg.draw.rect(self.window,
                      BLACK,
                      (STT_LIST_POS[0], STT_LIST_POS[1], *STRATEGY_LIST_SIZE),
                      THICK_LINE)
 
-        # strategy text board
+        # Strategy text board
         pg.draw.rect(self.window,
                      BLACK,
                      (STT_RESULT_POS[0], STT_RESULT_POS[1], *STRATEGY_TEXT_SIZE), THICK_LINE)
@@ -408,7 +421,6 @@ class Game:
             should_print_no = False
 
         for strategy in strats:
-            # Increment positions for the next strategy
             pos_list[1] += 25
             pos_indicator[1] += 25
 
@@ -418,7 +430,6 @@ class Game:
             is_active_strategy = successful_strategy_name in [prefix + ' ' + s for s in strategies.split('/')]
             style = 'stt_size_bold' if is_active_strategy else 'stt_size'
 
-            # Draw the strategy name
             self.text_to_screen(strategy, pos_list, style, WHITE)
 
             # If this is the successful strategy, print 'YES' and update the flag
@@ -447,7 +458,7 @@ class Game:
         if self.mousePos[0] > GRID_POS[0] + GRID_SIZE or self.mousePos[1] > GRID_POS[1] + GRID_SIZE:
             return False
 
-        return (self.mousePos[0] - GRID_POS[0]) // CELL_SIZE, (self.mousePos[1] - GRID_POS[1]) // CELL_SIZE
+        return (self.mousePos[1] - GRID_POS[1]) // CELL_SIZE, (self.mousePos[0] - GRID_POS[0]) // CELL_SIZE
 
     def handle_button_action(self, button_text):
         match button_text:
@@ -474,8 +485,8 @@ class Game:
                 self.get_puzzle2('Evil')
 
             case 'Solution Count':
-                solution_count.count_solutions(utils.dict2grid(self.board.puzzle), 'puzzle')
-                solution_count.count_solutions(utils.dict2grid(self.board.board), 'current_board')
+                count_solutions(utils.dict2grid(self.board.puzzle), 'puzzle')
+                count_solutions(utils.dict2grid(self.board.board), 'current_board')
 
             case 'Solve':
                 pass

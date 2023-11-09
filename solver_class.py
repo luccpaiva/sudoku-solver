@@ -1,14 +1,6 @@
-
 import utils
 from strat_handler import StratHandler
-import pprint
-
-from strats import naked_singles
-from strats import hidden_singles
-
-from strats import format_naked_hidden_sets_text
-from strats import naked_sets_find, naked_sets_process
-from strats import hidden_sets_find, hidden_sets_process
+import strats
 
 
 class Solver:
@@ -97,7 +89,7 @@ class Solver:
     # STRATEGIES
     # ///////////////////////////////////////////////////////////////
     def naked_singles(self):
-        n_singles, n_singles_text = naked_singles(self.possibles)
+        n_singles, n_singles_text = strats.naked_singles(self.possibles)
         success = bool(n_singles)
 
         result = StratHandler('Naked Singles',
@@ -111,7 +103,7 @@ class Solver:
         return result
 
     def hidden_singles(self):
-        h_singles, h_singles_text = hidden_singles(self.possibles, self.units)
+        h_singles, h_singles_text = strats.hidden_singles(self.possibles, self.units)
 
         success = bool(h_singles)
 
@@ -137,18 +129,18 @@ class Solver:
                 case 4:
                     strat_name = 'Naked Quads'
 
-            naked_sets = naked_sets_find(self.possibles,
-                                         set_size,
-                                         self.units)
+            naked_sets = strats.naked_sets_find(self.possibles,
+                                                set_size,
+                                                self.units)
 
-            processed_naked_sets, highlight_list, eliminate_list = naked_sets_process(self.possibles,
-                                                                                      naked_sets)
+            processed_naked_sets, highlight_list, eliminate_list = strats.naked_sets_process(self.possibles,
+                                                                                             naked_sets)
 
             # Double check if there is something to eliminate
             success = bool(processed_naked_sets) and bool(eliminate_list)
 
             if success:
-                n_pairs_text = format_naked_hidden_sets_text(processed_naked_sets,
+                n_pairs_text = strats.format_naked_sets_text(processed_naked_sets,
                                                              strat_name)
 
                 return StratHandler(strat_name,
@@ -171,14 +163,14 @@ class Solver:
                 case 4:
                     strat_name = 'Hidden Quads'
 
-            hidden_sets = hidden_sets_find(self.possibles, set_size, self.units)
-            highlight_list, eliminate_list = hidden_sets_process(self.possibles, hidden_sets)
+            hidden_sets = strats.hidden_sets_find(self.possibles, set_size, self.units)
+            highlight_list, eliminate_list = strats.hidden_sets_process(self.possibles, hidden_sets)
 
             success = bool(hidden_sets) and bool(eliminate_list)
 
             if success:
-                h_pairs_text = format_naked_hidden_sets_text(hidden_sets,
-                                                             strat_name)
+                h_pairs_text = strats.format_hidden_sets_text(hidden_sets,
+                                                              strat_name)
 
                 return StratHandler(strat_name,
                                     success,
@@ -187,3 +179,29 @@ class Solver:
                                     highlight_list,
                                     eliminate_list,
                                     h_pairs_text)
+
+    def intersection_removal(self, intersection_type):
+        pointing_pairs, box_reductions = strats.intersections_find(self.possibles, self.units)
+
+        if intersection_type == 'Pointing Pairs':
+            highlight_list, eliminate_list = strats.intersections_process(pointing_pairs)
+        else:
+            highlight_list, eliminate_list = strats.intersections_process(box_reductions)
+
+        success = bool(eliminate_list)
+        i_removals_text = None
+
+        if success:
+            i_removals_text = strats.format_intersections_text(box_reductions if intersection_type == 'Box-Reduction'
+                                                               else pointing_pairs,
+                                                               intersection_type)
+
+        result = StratHandler(intersection_type,
+                              success,
+                              None,
+                              None,
+                              highlight_list if success else None,
+                              eliminate_list if success else None,
+                              i_removals_text)
+
+        return result

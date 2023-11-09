@@ -8,7 +8,7 @@ BOX_SIZE = 3
 MAX_SOLUTIONS = 10
 
 
-class Sudoku:
+class SolutionCount:
     # noinspection PyPep8Naming
     def __init__(self, grid: List, is_X_Sudoku=False):
         n = len(grid)
@@ -516,7 +516,7 @@ def solveSudoku(grid, verbose=True, all_solutions=False, is_X_Sudoku=False):
     progress, update_increment, progress_update = 0.0, 0.01, 0.01
     solution_set = []
 
-    game = Sudoku(grid, is_X_Sudoku=is_X_Sudoku)
+    game = SolutionCount(grid, is_X_Sudoku=is_X_Sudoku)
     game.flush_candidates()  # check for obvious candidates
 
     possible, message = game.check_possible()
