@@ -1,6 +1,3 @@
-Cell = tuple[int, int]
-BoardType = dict[Cell, int]
-
 
 class StratHandler:
     def __init__(self, strategy_name: str, success, solved_cells, highlight_cells, highlight_candidates,

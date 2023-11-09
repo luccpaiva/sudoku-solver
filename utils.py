@@ -118,7 +118,7 @@ def get_cells(board: BoardType, *cells: Cell) -> set[int]:
 def set_cells(board, cells: list[tuple[Cell, int]]):
     """Set the given cells to the given values."""
     for cell, value in cells:
-        board.board[cell] = value
+        board[cell] = value
 
     # return board
 
@@ -134,40 +134,3 @@ def print_possibles(board: BoardType):
                 print("_", end=" ")
         print()
 
-
-# Solver text format
-# ///////////////////////////////////////////////////////////////
-def format_hidden_single_text(cell: Cell, hidden_single, hidden_in_units):
-    """Formats the descriptive text for a found hidden single."""
-    units_text = ', '.join([unit[1:] for unit in hidden_in_units])
-
-    # If there are multiple units, use 'and' for the last one
-    if len(hidden_in_units) > 1:
-        last_comma_idx = units_text.rfind(',')
-        units_text = units_text[:last_comma_idx] + ' and' + units_text[last_comma_idx + 1:]
-
-    text = f"{pos2cord(cell)} set to {hidden_single}. Unique in {units_text}"
-    return text
-
-
-def format_naked_hidden_sets_text(result_dict, naked_hidden_set_name):
-    text = []
-    for conjugate, data in result_dict.items():
-        candidates = "/".join(map(str, data['candidates']))
-        cells = "/".join([format_cell(cell) for cell in conjugate])
-
-        # If there are common units, add them to the text
-        if 'Naked' in naked_hidden_set_name:
-
-            for unit_type, cells_to_remove_from in data['common_units'].items():
-                if cells_to_remove_from:  # Check if set is not empty
-                    removal_cells = ", ".join([format_cell(c) for c in cells_to_remove_from])
-                    unit_name = unit_type[1:]
-                    text.append(
-                        f"{naked_hidden_set_name} ({unit_name}): {cells} removes {candidates} from {removal_cells}")
-
-        else:
-            removal_cells = ", ".join([format_cell(c) for c in conjugate])
-            text.append(f"{naked_hidden_set_name} {cells} removes {candidates} from {removal_cells}")
-
-    return text

@@ -8,13 +8,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="86665d01-93ab-4835-a802-657e622afd99" name="Default Changelist" comment="new classes update">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Esboço/window.bak" beforeDir="false" afterPath="$PROJECT_DIR$/draft/window.bak" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Esboço/window.dwg" beforeDir="false" afterPath="$PROJECT_DIR$/draft/window.dwg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_class.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/button_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/button_class.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/outdated.py" beforeDir="false" afterPath="$PROJECT_DIR$/outdated.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/solution_count.py" beforeDir="false" afterPath="$PROJECT_DIR$/solution_count.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/solver_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/solver_class.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strat_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/strat_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strats/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strats/hidden_sets.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/hidden_sets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strats/hidden_singles.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/hidden_singles.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strats/naked_sets.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/naked_sets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strats/solver_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/solver_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_boards.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_boards.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/z_last_loaded_puzzle" beforeDir="false" afterPath="$PROJECT_DIR$/z_last_loaded_puzzle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,6 +34,11 @@
   </component>
   <component name="ComposerSettings">
     <execution />
+  </component>
+  <component name="ExportToHTMLSettings">
+    <option name="printScope" value="1" />
+    <option name="OPEN_IN_BROWSER" value="true" />
+    <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/../../OneDrive/Desktop" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -99,32 +115,35 @@
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="false" />
     <option name="showLibraryContents" value="true" />
+    <option name="showModules" value="false" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "classes-update",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/Repos/Sudoku_Paiva",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.38362464",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "settings.editor.splitter.proportion": "0.23384616",
-    "show.migrate.to.gradle.popup": "false",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;full.screen.before.presentation.mode&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Repos/JavaScript Course/01-Fundamentals-Part-1/starter&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.38362464&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.rainbow.brackets.indent&quot;,
+    &quot;settings.editor.splitter.proportion&quot;: &quot;0.23384616&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="PyDebuggerOptionsProvider">
     <option name="mySaveCallSignatures" value="true" />
     <option name="mySupportGeventDebugging" value="true" />
@@ -299,6 +318,42 @@
       <workItem from="1698573650936" />
       <workItem from="1698615590672" />
       <workItem from="1698617895332" />
+      <workItem from="1698656798001" />
+      <workItem from="1698660222858" />
+      <workItem from="1698661663669" />
+      <workItem from="1698668579224" />
+      <workItem from="1698683845520" />
+      <workItem from="1698684887054" />
+      <workItem from="1698707089577" />
+      <workItem from="1698708104501" />
+      <workItem from="1698711748118" />
+      <workItem from="1698744328174" />
+      <workItem from="1698756783238" />
+      <workItem from="1698757272510" />
+      <workItem from="1698757667348" />
+      <workItem from="1698760920188" />
+      <workItem from="1698771336880" />
+      <workItem from="1698773802203" />
+      <workItem from="1698915518896" />
+      <workItem from="1698916008451" />
+      <workItem from="1698956255285" />
+      <workItem from="1698958428841" />
+      <workItem from="1698963760277" />
+      <workItem from="1699134188892" />
+      <workItem from="1699148375384" />
+      <workItem from="1699221174157" />
+      <workItem from="1699226999651" />
+      <workItem from="1699312042946" />
+      <workItem from="1699349249969" />
+      <workItem from="1699365784969" />
+      <workItem from="1699377008632" />
+      <workItem from="1699382979290" />
+      <workItem from="1699387133139" />
+      <workItem from="1699395965885" />
+      <workItem from="1699439866217" />
+      <workItem from="1699452512558" />
+      <workItem from="1699529829417" />
+      <workItem from="1699534625979" />
     </task>
     <task id="LOCAL-00001" summary="test v1">
       <created>1625843362612</created>
@@ -481,11 +536,6 @@
         <breakpoint type="dart-exception" />
       </default-breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="merged_cells" />
-      </configuration>
-    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -494,5 +544,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Sudoku_Paiva$solver.coverage" NAME="solver Coverage Results" MODIFIED="1682438445752" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Sudoku_Paiva$main.coverage" NAME="main Coverage Results" MODIFIED="1698620198320" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/sudoku_solver$main.coverage" NAME="main Coverage Results" MODIFIED="1699535930228" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>
