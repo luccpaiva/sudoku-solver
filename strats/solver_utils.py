@@ -1,3 +1,5 @@
+import time
+from functools import wraps
 from itertools import combinations, chain
 
 
@@ -7,17 +9,8 @@ def get_combinations(iterable, r):
 
 
 def get_chained_combinations(iterable, lengths):
-    """
-    Chain together multiple combination iterators of different lengths.
+    """Chain together multiple combination iterators of different lengths."""
 
-    Parameters:
-    iterable: An iterable of elements to combine.
-    lengths: A list of different lengths of combinations to generate.
-
-    Returns:
-    An iterator that yields the combinations of the specified lengths.
-    """
-    # Generate a list of combination iterators for each specified length
     combo_iterators = [combinations(iterable, length) for length in lengths]
 
     # Chain all iterators into a single iterator and return it
@@ -38,6 +31,7 @@ def get_cell_unit_keys(cell):
 
 
 def check_same_units(cells, unit_type):
+    """Return True if all the cells belong to the same given unit type."""
     first_cell_unit = get_cell_unit_keys(cells[0])[unit_type]
     for cell in cells[1:]:
         if get_cell_unit_keys(cell)[unit_type] != first_cell_unit:
@@ -48,7 +42,7 @@ def check_same_units(cells, unit_type):
 
 def get_common_units(all_units, *cells):
     """Return the common units for multiple cells if they exist, classified by unit type.
-    Since now dictionaries are ordered by key, we want the box to be row to be checked first, hence _A_row, _B_box...
+    Since now dictionaries are ordered, we want the box to be row to be checked first, hence _A_row, _B_box...
     example:
         cells = [(0, 0), (0, 1)]
         common_units = {
@@ -83,7 +77,27 @@ def get_candidates_dict(board, cells):
     """Return a dictionary containing the candidates for the list of cells."""
     candidates_dict = {}
     for unit_cell in cells:
-        for _ in board.get(unit_cell, []):
-            candidates_dict.setdefault(_, []).append(unit_cell)
+        for candidate in board.get(unit_cell, []):
+            candidates_dict.setdefault(candidate, []).append(unit_cell)
 
     return candidates_dict
+
+
+class LoopCounter:
+    def __init__(self):
+        self.count = 0
+
+
+def time_and_count_loops(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        # Create a counter and inject it into kwargs
+        counter = LoopCounter()
+        kwargs['loop_counter'] = counter
+        result = func(*args, **kwargs)
+        elapsed_time = (time.time() - start_time) * 1000
+        print(f"Function '{func.__name__}' took {elapsed_time:.2f} ms and {counter.count} iterations.")
+        return result
+
+    return wrapper

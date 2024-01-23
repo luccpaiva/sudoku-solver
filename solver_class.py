@@ -140,7 +140,7 @@ class Solver:
             success = bool(processed_naked_sets) and bool(eliminate_list)
 
             if success:
-                n_pairs_text = strats.format_naked_sets_text(processed_naked_sets,
+                n_pairs_text = strats.naked_sets_text_format(processed_naked_sets,
                                                              strat_name)
 
                 return StratHandler(strat_name,

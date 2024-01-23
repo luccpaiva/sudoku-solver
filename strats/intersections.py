@@ -7,6 +7,7 @@ def intersections_find(board, all_units):
     pointing_pairs = {}
 
     for unit_type, unit_cells in all_units.items():
+        # skip the box because it's already checked against the other units
         if not unit_cells or unit_type == 'Bbox':
             continue
 
@@ -67,24 +68,14 @@ def intersections_process(i_removals):
 
 
 def format_intersections_text(i_removals, intersection_type):
-    i_removals_text = []
-    if intersection_type == 'Pointing Pairs':
-        i_removals_text.append("Pointing Pairs")
-        for conjugate, data in i_removals.items():
-            cells = "/".join([format_cell(cell) for cell in data['cells']])
-            cd = data['candidate']
-            unit_type = data['unit_type'][1:].capitalize()
-            unit_index = data['unit_index'] + 1
-            box_index = data['box'] + 1
-            i_removals_text.append(f"Box={box_index} & {unit_type}={unit_index} removes {cd} from {cells}")
-    else:
-        i_removals_text.append("Box Reductions")
-        for conjugate, data in i_removals.items():
-            cells = "/".join([format_cell(cell) for cell in data['cells']])
-            cd = data['candidate']
-            unit_type = data['unit_type'][1:].capitalize()
-            unit_index = data['unit_index'] + 1
-            box_index = data['box'] + 1
-            i_removals_text.append(f"Box={box_index} & {unit_type}={unit_index} removes {cd} from {cells}")
-
-    return i_removals_text
+    formatted_text = [intersection_type.replace("_", " ")]
+    for _, data in i_removals.items():
+        cells = "/".join(format_cell(cell) for cell in data['cells'])
+        candidate = data['candidate']
+        unit_type = data['unit_type'][1:].capitalize()
+        unit_index = data['unit_index'] + 1
+        box_index = data['box'] + 1
+        formatted_text.append(
+            f"Box={box_index} & {unit_type}={unit_index} removes {candidate} from {cells}"
+        )
+    return formatted_text

@@ -21,11 +21,11 @@ class Game:
         pg.init()
         pg.display.set_caption('Sudoku Solver by Lucas Paiva')
         self.clock = pg.time.Clock()
-        self.window = pg.display.set_mode((WIDTH, HEIGHT), display=1)
+        self.window = pg.display.set_mode((WIDTH, HEIGHT))
         self.board_num_font = pg.font.SysFont('Arial', CELL_SIZE // 2)  # for puzzle numbers
         self.coord_font = pg.font.SysFont('Arial', 25)  # for grid coordinate
         self.cand_font = pg.font.SysFont('Arial', CELL_SIZE // 3)  # for candidate numbers
-        self.stt_font = pg.font.SysFont('Consolas', 15)  # for results
+        self.stt_font = pg.font.SysFont('Consolas', 17)  # for results
         self.stt_bold_font = pg.font.SysFont('Consolas', 15, bold=True)  # for highlighted results
 
         # GAME LOOP VARIABLES
@@ -37,6 +37,7 @@ class Game:
         self.cellChanged = False
         self.updateboard = False
         self.state = IDLE
+        self.no_strategies = False
 
         # INITIALIZE CLASSES
         # ///////////////////////////////////////////////////////////////
@@ -57,7 +58,7 @@ class Game:
 
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
-        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_ppair4))
+        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_challenge3))
         self.board.possibles = self.solver.update_possibles(self.board)
 
     # GAME LOOP
@@ -113,7 +114,7 @@ class Game:
                     self.step_handler()
 
     def step_handler(self):
-        if self.state == IDLE:
+        if self.state == IDLE and not self.no_strategies:
             self.solver = Solver(self.board)
             strategies = [self.solver.naked_singles,
                           self.solver.hidden_singles,
@@ -133,6 +134,7 @@ class Game:
                         break
             else:
                 print('No strategy found')
+                self.no_strategies = True
 
         elif self.state == STRATEGY_SUCCESSFUL:
 
@@ -151,6 +153,7 @@ class Game:
             # The board has been updated, ready for the next strategy
             # leave this here if needed to implement something between one strategy and the next
             # for that, turn the state to BOARD_UPDATING IN elif self.state
+            self.no_strategies = False
             self.state = IDLE
 
     def playing_update(self):
@@ -234,6 +237,7 @@ class Game:
         self.board.load_board(utils.str2grid(board_str))
         self.board.possibles = self.solver.update_possibles(self.board)
         self.strategy_result = None
+        self.no_strategies = False
 
         with open('z_last_loaded_puzzle', 'w') as file:
             file.write(board_str)
@@ -263,7 +267,7 @@ class Game:
         board_str = ''
 
         for cid in ids:
-            cell = soup.find('textarea', id=cid)
+            cell = soup.find('p', {'class': 'rp1', 'id': cid})
 
             # Assuming the number is directly contained in the textarea
             if cell and cell.get_text().isdigit():
@@ -274,6 +278,7 @@ class Game:
         self.board.load_board(utils.str2grid(board_str))
         self.board.possibles = self.solver.update_possibles(self.board)
         self.strategy_result = None
+        self.no_strategies = False
 
         with open('z_last_loaded_puzzle', 'w') as file:
             file.write(board_str)

@@ -7,20 +7,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86665d01-93ab-4835-a802-657e622afd99" name="Default Changelist" comment="new classes update">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="86665d01-93ab-4835-a802-657e622afd99" name="Default Changelist" comment="intersections strategy and minor updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Esboço/window.bak" beforeDir="false" afterPath="$PROJECT_DIR$/draft/window.bak" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Esboço/window.dwg" beforeDir="false" afterPath="$PROJECT_DIR$/draft/window.dwg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_class.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/button_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/button_class.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/outdated.py" beforeDir="false" afterPath="$PROJECT_DIR$/outdated.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solution_count.py" beforeDir="false" afterPath="$PROJECT_DIR$/solution_count.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/solver_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/solver_class.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strat_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/strat_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/strats/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/strats/hidden_sets.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/hidden_sets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strats/hidden_singles.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/hidden_singles.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strats/intersections.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/intersections.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/strats/naked_sets.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/naked_sets.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/strats/solver_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/solver_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_boards.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_boards.py" afterDir="false" />
@@ -89,6 +83,9 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="228fdd41-535c-4725-ae9f-af0a5acd8ce4" />
+  </component>
   <component name="GithubPullRequestsUISettings">
     <option name="selectedUrlAndAccountId">
       <UrlAndAccount>
@@ -121,6 +118,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
@@ -128,17 +126,18 @@
     &quot;full.screen.before.presentation.mode&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Repos/JavaScript Course/01-Fundamentals-Part-1/starter&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Repos/fluter_sudoku&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Problems&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.38362464&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.rainbow.brackets.indent&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;,
     &quot;settings.editor.splitter.proportion&quot;: &quot;0.23384616&quot;,
     &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
@@ -146,7 +145,6 @@
 }</component>
   <component name="PyDebuggerOptionsProvider">
     <option name="mySaveCallSignatures" value="true" />
-    <option name="mySupportGeventDebugging" value="true" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
@@ -162,6 +160,7 @@
     </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Sudoku_Paiva" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -354,6 +353,47 @@
       <workItem from="1699452512558" />
       <workItem from="1699529829417" />
       <workItem from="1699534625979" />
+      <workItem from="1699554197139" />
+      <workItem from="1699559131044" />
+      <workItem from="1699562667805" />
+      <workItem from="1699578719340" />
+      <workItem from="1699612455998" />
+      <workItem from="1699627672446" />
+      <workItem from="1699628024616" />
+      <workItem from="1699633420338" />
+      <workItem from="1699633919086" />
+      <workItem from="1699701398679" />
+      <workItem from="1699701974517" />
+      <workItem from="1699717050670" />
+      <workItem from="1699749001312" />
+      <workItem from="1699782818506" />
+      <workItem from="1700072251784" duration="41000" />
+      <workItem from="1700072809131" duration="64000" />
+      <workItem from="1700072906350" duration="204000" />
+      <workItem from="1700097814073" duration="553000" />
+      <workItem from="1700165070724" duration="1248000" />
+      <workItem from="1700169643936" duration="450000" />
+      <workItem from="1700480974075" duration="248000" />
+      <workItem from="1700650671221" duration="194000" />
+      <workItem from="1700752264273" duration="1206000" />
+      <workItem from="1700755445239" duration="175000" />
+      <workItem from="1700960369174" duration="42000" />
+      <workItem from="1701285884816" duration="245000" />
+      <workItem from="1701303636475" duration="14000" />
+      <workItem from="1703290587388" duration="707000" />
+      <workItem from="1703784688602" duration="48000" />
+      <workItem from="1703784826912" duration="1406000" />
+      <workItem from="1704211879892" duration="564000" />
+      <workItem from="1704751854876" duration="12000" />
+      <workItem from="1704905202623" duration="2180000" />
+      <workItem from="1704997058959" duration="336000" />
+      <workItem from="1704997411982" duration="52000" />
+      <workItem from="1705016225486" duration="15000" />
+      <workItem from="1705050067169" duration="36000" />
+      <workItem from="1705412105953" duration="69000" />
+      <workItem from="1705621121521" duration="94000" />
+      <workItem from="1705847648645" duration="69000" />
+      <workItem from="1706051972102" duration="375000" />
     </task>
     <task id="LOCAL-00001" summary="test v1">
       <created>1625843362612</created>
@@ -450,7 +490,15 @@
       <option name="project" value="LOCAL" />
       <updated>1697749814855</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="intersections strategy and minor updates">
+      <option name="closed" value="true" />
+      <created>1699536403097</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1699536403097</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -520,10 +568,18 @@
     <MESSAGE value="v 0.3" />
     <MESSAGE value="minor correction on solution count feature" />
     <MESSAGE value="new classes update" />
-    <option name="LAST_COMMIT_MESSAGE" value="new classes update" />
+    <MESSAGE value="intersections strategy and minor updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="intersections strategy and minor updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/app_class.py</url>
+          <line>236</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+      </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog>
           <selected-grouping-rules>
@@ -532,9 +588,6 @@
           </selected-grouping-rules>
         </breakpoints-dialog>
       </breakpoints-dialog>
-      <default-breakpoints>
-        <breakpoint type="dart-exception" />
-      </default-breakpoints>
     </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
@@ -542,8 +595,6 @@
     <select />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Sudoku_Paiva$solver.coverage" NAME="solver Coverage Results" MODIFIED="1682438445752" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Sudoku_Paiva$main.coverage" NAME="main Coverage Results" MODIFIED="1698620198320" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/sudoku_solver$main.coverage" NAME="main Coverage Results" MODIFIED="1699535930228" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/sudoku_solver$main.coverage" NAME="main Coverage Results" MODIFIED="1705621161666" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

@@ -1,4 +1,3 @@
-
 # CONSTANTS
 # ///////////////////////////////////////////////////////////////
 FULL_SET = set(range(1, 10))
@@ -133,4 +132,3 @@ def print_possibles(board: BoardType):
                 # If the key doesn't exist, print a placeholder
                 print("_", end=" ")
         print()
-
