@@ -1,5 +1,5 @@
-from utils import format_cell
 import strats.solver_utils as solver_utils
+from utils import format_cell
 
 
 def hidden_sets_find(board, set_size, all_units):
@@ -28,15 +28,16 @@ def hidden_sets_find(board, set_size, all_units):
             combined_sets = {}
             for candidate_combo in solver_utils.combinations(potential_hidden_sets.keys(), set_size):
                 merged_cells = set()
+
                 for candidate in candidate_combo:
                     cells_lists = potential_hidden_sets[candidate]
+
                     for cells in cells_lists:
                         merged_cells.update(cells)
                         combined_sets[candidate_combo] = tuple(sorted(merged_cells))
 
                 # Check each combination of candidates of size set_size
             for combined_candidates, cells in combined_sets.items():
-
                 # Check if the overall sum of candidates in unit is higher than set_size, otherwise not hidden set
                 overall_candidates = set().union(*(board.get(c, set()) for c in cells))
                 if len(cells) == set_size and len(overall_candidates) > set_size:
@@ -68,12 +69,12 @@ def hidden_sets_process(board, hidden_set):
     return highlight_candidates_list, eliminated_candidates_list
 
 
-def format_hidden_sets_text(result_dict, naked_hidden_set_name):
+def format_hidden_sets_text(result_dict, hidden_set_name):
     text = []
     for conjugate, data in result_dict.items():
         cells = "/".join([format_cell(cell) for cell in conjugate])
 
         removal_cells = ", ".join([format_cell(c) for c in conjugate])
-        text.append(f"{naked_hidden_set_name} {cells} removes remaining candidates from {removal_cells}")
+        text.append(f"{hidden_set_name} {cells} removes remaining candidates from {removal_cells}")
 
     return text

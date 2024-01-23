@@ -1,5 +1,5 @@
-import utils
 import strats.solver_utils as solver_utils
+import utils
 
 
 def naked_sets_find(board, set_size, all_units):
@@ -25,6 +25,7 @@ def naked_sets_find(board, set_size, all_units):
 
                 if len(combined_candidates) == set_size:
                     common_units = solver_utils.get_common_units(all_units, *cells_combination)
+
                     if common_units:
                         valid_naked_sets[cells_combination] = {
                             'cells': (list(utils.format_cell(c) for c in cells_combination)),
@@ -40,7 +41,6 @@ def naked_sets_process(board, naked_set):
     highlight_candidates_list = []
     eliminated_candidates_list = []
 
-    # Conjugate is another word for set
     for conjugate, data in naked_set.items():
         candidates = data['candidates']
         common_units = data['common_units']
@@ -74,7 +74,7 @@ def naked_sets_process(board, naked_set):
     return processed_naked_sets, highlight_candidates_list, eliminated_candidates_list
 
 
-def format_naked_sets_text(result_dict, naked_hidden_set_name):
+def naked_sets_text_format(result_dict, naked_set_name):
     text = []
     for conjugate, data in result_dict.items():
         candidates = "/".join(map(str, data['candidates']))
@@ -84,6 +84,6 @@ def format_naked_sets_text(result_dict, naked_hidden_set_name):
                 removal_cells = ", ".join([utils.format_cell(c) for c in cells_to_remove_from])
                 unit_name = unit_type[1:]
                 text.append(
-                    f"{naked_hidden_set_name} ({unit_name}): {cells} removes {candidates} from {removal_cells}")
+                    f"{naked_set_name} ({unit_name}): {cells} removes {candidates} from {removal_cells}")
 
     return text
