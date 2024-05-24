@@ -1,6 +1,7 @@
 import time
 from functools import wraps
 from itertools import combinations, chain
+from utils import CellType, BoardType
 
 
 def get_combinations(iterable, r):
@@ -17,7 +18,7 @@ def get_chained_combinations(iterable, lengths):
     return chain(*combo_iterators)
 
 
-def get_cell_unit_keys(cells):
+def get_cell_unit_keys(cells: list[CellType] or CellType):
     """Return the keys for the units the cell(s) belong to.
     example:
         cells = (0, 0)
@@ -26,7 +27,7 @@ def get_cell_unit_keys(cells):
         unit_keys = {'Arow': [0, 3], 'Ccol': [0, 5], 'Bbox': [0, 1]}
     """
 
-    def cell_to_unit_keys(cell):
+    def cell_to_unit_keys(cell: CellType):
         row, col = cell
         box = (row // 3) * 3 + (col // 3)
         return {'Arow': row, 'Bbox': box, 'Ccol': col}

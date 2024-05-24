@@ -1,3 +1,5 @@
+from utils import CellType, BoardType
+
 
 class Board:
     def __init__(self, puzzle: list[list[int]] = None):

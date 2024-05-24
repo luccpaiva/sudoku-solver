@@ -647,3 +647,31 @@
 #                             }
 #
 #     return pointing_pairs, box_reductions
+
+# def text_to_screen2(self, text, pos, size, colour):
+#     font = None
+#     match size:
+#         case 'board_num_size':
+#             font = self.board_num_font.render(text, True, colour)
+#             fontWidth = font.get_width()
+#             fontHeight = font.get_height()
+#             pos[0] += (CELL_SIZE - fontWidth) // 2
+#             pos[1] += (CELL_SIZE - fontHeight) // 2
+#         case 'coord_size':
+#             font = self.coord_font.render(text, True, colour)
+#             fontWidth = font.get_width()
+#             fontHeight = font.get_height()
+#             pos[0] += (CELL_SIZE - fontWidth) // 2
+#             pos[1] += (CELL_SIZE - fontHeight) // 2
+#         case 'cand_size':
+#             font = self.cand_font.render(text, True, colour)
+#             fontWidth = font.get_width()
+#             fontHeight = font.get_height()
+#             pos[0] += (MINI_CELL_SIZE - fontWidth) // 2
+#             pos[1] += (MINI_CELL_SIZE - fontHeight) // 2
+#         case 'stt_size':
+#             font = self.stt_font.render(text, True, colour)
+#         case 'stt_size_bold':
+#             font = self.stt_bold_font.render(text, True, colour)
+#
+#     self.window.blit(font, pos)

@@ -1,8 +1,9 @@
-from utils import format_cell
+from utils import format_cell, CellType, BoardType
 import strats.solver_utils as solver_utils
+from itertools import combinations
 
 
-def x_wing_potential(board, all_units) -> dict:
+def x_wing_potential(board: BoardType, all_units) -> dict:
     # two possible cells for a candidate in each of two different rows
     x_wing_candidates = {}
 
@@ -30,7 +31,7 @@ def x_wing_potential(board, all_units) -> dict:
     return x_wing_candidates
 
 
-def x_wing_find(board, all_units):
+def x_wing_find(board: BoardType, all_units):
     x_wing_candidates = x_wing_potential(board, all_units)
 
     x_wing_results = {}

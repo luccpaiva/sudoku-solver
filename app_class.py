@@ -27,7 +27,7 @@ class Game:
         self.coord_font = pg.font.SysFont('Arial', 25)  # for grid coordinate
         self.cand_font = pg.font.SysFont('Arial', CELL_SIZE // 3)  # for candidate numbers
         self.stt_font = pg.font.SysFont('Consolas', 17)  # for results
-        self.stt_bold_font = pg.font.SysFont('Consolas', 15, bold=True)  # for highlighted results
+        self.stt_bold_font = pg.font.SysFont('Consolas', 17, bold=True)  # for highlighted results
 
         # GAME LOOP VARIABLES
         # ///////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ class Game:
 
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
-        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_xwing2))
+        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_swordfish4))
         self.board.possibles = self.solver.update_possibles(self.board)
 
     # GAME LOOP
@@ -126,6 +126,7 @@ class Game:
                           lambda: self.solver.intersection_removal('Pointing Pairs'),
                           lambda: self.solver.intersection_removal('Box-Reduction'),
                           lambda: self.solver.x_wing(),
+                          lambda: self.solver.swordfish()
                           ]
 
             for strategy in strategies:
@@ -341,10 +342,10 @@ class Game:
                      (GRID_POS[0], GRID_POS[1], GRID_SIZE, GRID_SIZE),
                      2)
         for i in range(9):
-            pg.draw.line(self.window, BLACK, (GRID_POS[0] + (i * CELL_SIZE), GRID_POS[1]),
+            pg.draw.line(self.window, DARKBLUE2, (GRID_POS[0] + (i * CELL_SIZE), GRID_POS[1]),
                          (GRID_POS[0] + (i * CELL_SIZE), GRID_POS[1] + GRID_SIZE),
                          2 if i % 3 == 0 else 1)
-            pg.draw.line(self.window, BLACK, (GRID_POS[0], GRID_POS[1] + (i * CELL_SIZE)),
+            pg.draw.line(self.window, DARKBLUE2, (GRID_POS[0], GRID_POS[1] + (i * CELL_SIZE)),
                          (GRID_POS[0] + GRID_SIZE, GRID_POS[1] + (i * CELL_SIZE)),
                          2 if i % 3 == 0 else 1)
 
@@ -508,36 +509,7 @@ class Game:
         for props in BUTTON_PROPERTIES:
             self.playingButtons.append(Button(**props))
 
-    def text_to_screen2(self, text, pos, size, colour):
-        font = None
-        match size:
-            case 'board_num_size':
-                font = self.board_num_font.render(text, True, colour)
-                fontWidth = font.get_width()
-                fontHeight = font.get_height()
-                pos[0] += (CELL_SIZE - fontWidth) // 2
-                pos[1] += (CELL_SIZE - fontHeight) // 2
-            case 'coord_size':
-                font = self.coord_font.render(text, True, colour)
-                fontWidth = font.get_width()
-                fontHeight = font.get_height()
-                pos[0] += (CELL_SIZE - fontWidth) // 2
-                pos[1] += (CELL_SIZE - fontHeight) // 2
-            case 'cand_size':
-                font = self.cand_font.render(text, True, colour)
-                fontWidth = font.get_width()
-                fontHeight = font.get_height()
-                pos[0] += (MINI_CELL_SIZE - fontWidth) // 2
-                pos[1] += (MINI_CELL_SIZE - fontHeight) // 2
-            case 'stt_size':
-                font = self.stt_font.render(text, True, colour)
-            case 'stt_size_bold':
-                font = self.stt_bold_font.render(text, True, colour)
-
-        self.window.blit(font, pos)
-
     def text_to_screen(self, text, pos, size, colour):
-        font = None
         max_width = settings.STRATEGY_TEXT_SIZE[0]
         y_offset = 0
 
