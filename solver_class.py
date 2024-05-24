@@ -205,3 +205,22 @@ class Solver:
                               i_removals_text)
 
         return result
+
+    def x_wing(self):
+        x_wing = strats.x_wing_find(self.possibles, self.units)
+
+        success = bool(x_wing)
+        highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
+
+        if success:
+            highlight_candidates, eliminated_candidates, highlight_cells, description = strats.x_wing_process(x_wing)
+
+        result = StratHandler('X-Wing',
+                              success,
+                              None,
+                              highlight_cells if success else None,
+                              highlight_candidates if success else None,
+                              eliminated_candidates if success else None,
+                              description if success else None)
+
+        return result

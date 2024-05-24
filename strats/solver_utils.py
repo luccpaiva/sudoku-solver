@@ -17,17 +17,31 @@ def get_chained_combinations(iterable, lengths):
     return chain(*combo_iterators)
 
 
-def get_cell_unit_keys(cell):
-    """Return the keys for the units the cell belongs to.
+def get_cell_unit_keys(cells):
+    """Return the keys for the units the cell(s) belong to.
     example:
-        cell = (0, 0)
-        unit_keys = {'row': 0, 'col': 0, 'box': 0}
-        cell = (3, 5)
-        unit_keys = {'row': 3, 'col': 5, 'box': 1}
+        cells = (0, 0)
+        unit_keys = {'Arow': 0, 'Ccol': 0, 'Bbox': 0}
+        cells = [(0, 0), (3, 5)]
+        unit_keys = {'Arow': [0, 3], 'Ccol': [0, 5], 'Bbox': [0, 1]}
     """
-    row, col = cell
-    box = (row // 3) * 3 + (col // 3)
-    return {'Arow': row, 'Bbox': box, 'Ccol': col}
+
+    def cell_to_unit_keys(cell):
+        row, col = cell
+        box = (row // 3) * 3 + (col // 3)
+        return {'Arow': row, 'Bbox': box, 'Ccol': col}
+
+    if isinstance(cells, tuple):
+        return cell_to_unit_keys(cells)
+
+    unit_keys = {'Arow': set(), 'Bbox': set(), 'Ccol': set()}
+    for cell in cells:
+        cell_keys = cell_to_unit_keys(cell)
+        unit_keys['Arow'].add(cell_keys['Arow'])
+        unit_keys['Bbox'].add(cell_keys['Bbox'])
+        unit_keys['Ccol'].add(cell_keys['Ccol'])
+
+    return unit_keys
 
 
 def check_same_units(cells, unit_type):

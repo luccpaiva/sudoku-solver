@@ -4,6 +4,7 @@ import requests
 import pygame as pg
 from bs4 import BeautifulSoup
 
+import settings
 import utils
 from settings import *
 from solution_count import count_solutions
@@ -58,7 +59,7 @@ class Game:
 
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
-        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_challenge3))
+        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_xwing2))
         self.board.possibles = self.solver.update_possibles(self.board)
 
     # GAME LOOP
@@ -124,6 +125,7 @@ class Game:
                           lambda: self.solver.hidden_sets([4]),
                           lambda: self.solver.intersection_removal('Pointing Pairs'),
                           lambda: self.solver.intersection_removal('Box-Reduction'),
+                          lambda: self.solver.x_wing(),
                           ]
 
             for strategy in strategies:
@@ -173,8 +175,8 @@ class Game:
                 button.draw(self.window)
 
             if self.state == STRATEGY_SUCCESSFUL:
-                self.draw_highlight_candidates()
                 self.draw_highlight_cells()
+                self.draw_highlight_candidates()
                 self.draw_solved_text()
 
             self.draw_board_numbers()
@@ -366,7 +368,7 @@ class Game:
 
     def draw_highlight_cells(self):
         if self.strategy_result.highlight_cells:
-            for (row, col), cell_value in self.strategy_result.highlight_cells:
+            for (row, col) in self.strategy_result.highlight_cells:
                 pos = [GRID_POS[0] + (col * CELL_SIZE), GRID_POS[1] + (row * CELL_SIZE)]
                 pg.draw.rect(self.window, LIGHTGREEN, (pos[0], pos[1], CELL_SIZE, CELL_SIZE))
 
@@ -506,7 +508,7 @@ class Game:
         for props in BUTTON_PROPERTIES:
             self.playingButtons.append(Button(**props))
 
-    def text_to_screen(self, text, pos, size, colour):
+    def text_to_screen2(self, text, pos, size, colour):
         font = None
         match size:
             case 'board_num_size':
@@ -533,3 +535,69 @@ class Game:
                 font = self.stt_bold_font.render(text, True, colour)
 
         self.window.blit(font, pos)
+
+    def text_to_screen(self, text, pos, size, colour):
+        font = None
+        max_width = settings.STRATEGY_TEXT_SIZE[0]
+        y_offset = 0
+
+        def render_text(text, font, max_width):
+            words = text.split(' ')
+            lines = []
+            current_line = []
+
+            for word in words:
+                current_line.append(word)
+                line_width = font.size(' '.join(current_line))[0]
+                if line_width > max_width:
+                    current_line.pop()
+                    lines.append(' '.join(current_line))
+                    current_line = [word]
+
+            if current_line:
+                lines.append(' '.join(current_line))
+
+            return lines
+
+        match size:
+            case 'board_num_size':
+                font = self.board_num_font.render(text, True, colour)
+                fontWidth = font.get_width()
+                fontHeight = font.get_height()
+                pos[0] += (CELL_SIZE - fontWidth) // 2
+                pos[1] += (CELL_SIZE - fontHeight) // 2
+                self.window.blit(font, pos)
+
+            case 'coord_size':
+                font = self.coord_font.render(text, True, colour)
+                fontWidth = font.get_width()
+                fontHeight = font.get_height()
+                pos[0] += (CELL_SIZE - fontWidth) // 2
+                pos[1] += (CELL_SIZE - fontHeight) // 2
+                self.window.blit(font, pos)
+
+            case 'cand_size':
+                font = self.cand_font.render(text, True, colour)
+                fontWidth = font.get_width()
+                fontHeight = font.get_height()
+                pos[0] += (MINI_CELL_SIZE - fontWidth) // 2
+                pos[1] += (MINI_CELL_SIZE - fontHeight) // 2
+                self.window.blit(font, pos)
+
+            case 'stt_size':
+                font = self.stt_font
+                lines = render_text(text, font, max_width)
+                line_height = font.size(text)[1]
+                for line in lines:
+                    rendered_text = font.render(line, True, colour)
+                    self.window.blit(rendered_text, (pos[0], pos[1] + y_offset))
+                    y_offset += line_height
+
+            case 'stt_size_bold':
+                font = self.stt_bold_font
+                lines = render_text(text, font, max_width)
+                line_height = font.size(text)[1]
+                for line in lines:
+                    rendered_text = font.render(line, True, colour)
+                    self.window.blit(rendered_text, (pos[0], pos[1] + y_offset))
+                    y_offset += line_height
