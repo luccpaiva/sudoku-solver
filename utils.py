@@ -4,8 +4,8 @@ FULL_SET = set(range(1, 10))
 
 # TYPE HINTS
 # ///////////////////////////////////////////////////////////////
-Cell = tuple[int, int]
-BoardType = dict[Cell, int]
+type CellType = tuple[int, int]
+type BoardType = dict[CellType, int]
 
 
 # CONVERSION FUNCTIONS
@@ -104,7 +104,7 @@ def unflatten(arr: list[int], n=9):
 
 # BOARD
 # ///////////////////////////////////////////////////////////////
-def get_cells(board: BoardType, *cells: Cell) -> set[int]:
+def get_cells(board: BoardType, *cells: CellType) -> set[int]:
     """Return a set of all values in the given cells."""
     results = set()
     for cell in cells:
@@ -114,7 +114,7 @@ def get_cells(board: BoardType, *cells: Cell) -> set[int]:
     return results
 
 
-def set_cells(board, cells: list[tuple[Cell, int]]):
+def set_cells(board, cells: list[tuple[CellType, int]]):
     """Set the given cells to the given values."""
     for cell, value in cells:
         board[cell] = value

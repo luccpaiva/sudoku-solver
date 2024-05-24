@@ -1,4 +1,5 @@
 import utils
+from utils import BoardType, CellType
 from strat_handler import StratHandler
 import strats
 
@@ -207,15 +208,36 @@ class Solver:
         return result
 
     def x_wing(self):
-        x_wing = strats.x_wing_find(self.possibles, self.units)
+        x_wing_results = strats.x_wing_find(self.possibles, self.units)
 
-        success = bool(x_wing)
+        success = bool(x_wing_results)
         highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
 
         if success:
-            highlight_candidates, eliminated_candidates, highlight_cells, description = strats.x_wing_process(x_wing)
+            highlight_candidates, eliminated_candidates, highlight_cells, description = strats.x_wing_process(
+                x_wing_results)
 
-        result = StratHandler('X-Wing',
+        result = StratHandler('X-Wing ',
+                              success,
+                              None,
+                              highlight_cells if success else None,
+                              highlight_candidates if success else None,
+                              eliminated_candidates if success else None,
+                              description if success else None)
+
+        return result
+
+    def swordfish(self):
+        swordfish_results = strats.swordfish_find(self.possibles, self.units)
+
+        success = bool(swordfish_results)
+        highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
+
+        if success:
+            highlight_candidates, eliminated_candidates, highlight_cells, description = strats.swordfish_process(
+                swordfish_results)
+
+        result = StratHandler('Swordfish ',
                               success,
                               None,
                               highlight_cells if success else None,

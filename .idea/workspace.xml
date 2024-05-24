@@ -7,14 +7,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86665d01-93ab-4835-a802-657e622afd99" name="Default Changelist" comment="intersections strategy and minor updates">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="86665d01-93ab-4835-a802-657e622afd99" name="Default Changelist" comment="Swordfish strategy">
+      <change afterPath="$PROJECT_DIR$/strats/swordfish.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_class.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/board_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/board_class.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outdated.py" beforeDir="false" afterPath="$PROJECT_DIR$/outdated.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/solver_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/solver_class.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/strats/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/strats/solver_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/solver_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/strats/x_wing.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/x_wing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_boards.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_boards.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/z_last_loaded_puzzle" beforeDir="false" afterPath="$PROJECT_DIR$/z_last_loaded_puzzle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -133,7 +138,7 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.38362464",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "advanced.settings",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyIntegratedToolsModulesConfigurable",
     "settings.editor.splitter.proportion": "0.23384616",
     "show.migrate.to.gradle.popup": "false",
     "vue.rearranger.settings.migration": "true"
@@ -407,7 +412,11 @@
       <workItem from="1716473101618" duration="16796000" />
       <workItem from="1716501873959" duration="7789000" />
       <workItem from="1716539203873" duration="69000" />
-      <workItem from="1716539311354" duration="4066000" />
+      <workItem from="1716539311354" duration="5106000" />
+      <workItem from="1716546811544" duration="1118000" />
+      <workItem from="1716559937407" duration="2077000" />
+      <workItem from="1716576459590" duration="13660000" />
+      <workItem from="1716591300274" duration="1458000" />
     </task>
     <task id="LOCAL-00001" summary="test v1">
       <created>1625843362612</created>
@@ -512,7 +521,15 @@
       <option name="project" value="LOCAL" />
       <updated>1699536403097</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="x-wing strategy">
+      <option name="closed" value="true" />
+      <created>1716543605250</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1716543605250</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -583,7 +600,9 @@
     <MESSAGE value="minor correction on solution count feature" />
     <MESSAGE value="new classes update" />
     <MESSAGE value="intersections strategy and minor updates" />
-    <option name="LAST_COMMIT_MESSAGE" value="intersections strategy and minor updates" />
+    <MESSAGE value="x-wing strategy" />
+    <MESSAGE value="Swordfish strategy" />
+    <option name="LAST_COMMIT_MESSAGE" value="Swordfish strategy" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -602,6 +621,6 @@
     <select />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/sudoku_solver$main.coverage" NAME="main Coverage Results" MODIFIED="1716543132942" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/sudoku_solver$main.coverage" NAME="main Coverage Results" MODIFIED="1716592775323" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>
