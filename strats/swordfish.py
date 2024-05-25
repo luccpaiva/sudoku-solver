@@ -1,9 +1,25 @@
-from utils import format_cell, CellType, BoardType
+from utils import format_cell, BoardType
 from itertools import combinations
 import strats.solver_utils as solver_utils
 
 
 def swordfish_potential(board: BoardType, all_units) -> dict:
+    """
+    The idea here is similar to X-Wing, but in a sense, reversed in terms of rows and columns.
+    The main difference is that in the X-Wing, we look at a candidate that appears in exactly two rows or two columns,
+    Then we just have to check whether the candidate appears in the same opposite columns or rows.
+
+    In the Swordfish, the "Column" version, the candidate may appear in more than 3 rows, but it must appear in exactly
+    3 columns. The same applies to the "Row" version, where the candidate may appear in more than 3 columns, but it must
+    appear in exactly 3 rows.
+
+    "Column" X-Wing: we eliminate the candidate from the rest of the 2 columns
+    "Column" Swordfish: we eliminate the candidate from the rest of the rows.
+
+    More interestingly, the Swordfish follows the same idea of naked/hidden triples, where the candidate doesn't have to
+    appear in all cells of the unit, but it must appear in at most 3x3x3 cells.
+    """
+
     # three possible cells for a candidate in each of three different rows
     swordfish_candidates = {}
 

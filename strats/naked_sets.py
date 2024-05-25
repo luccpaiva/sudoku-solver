@@ -2,7 +2,7 @@ import strats.solver_utils as solver_utils
 import utils
 
 
-def naked_sets_find(board, set_size, all_units):
+def naked_sets_find(board, set_size, possibles_units):
     valid_naked_sets = {}
 
     # 1 < len(candidates) <= set_size to account for incomplete sets
@@ -10,7 +10,7 @@ def naked_sets_find(board, set_size, all_units):
                             1 < len(candidates) <= set_size]
 
     for cell in potential_naked_sets:
-        visible_cells_of_current_cell = solver_utils.get_common_units(all_units, cell)
+        visible_cells_of_current_cell = solver_utils.get_common_units(possibles_units, cell)
         if not visible_cells_of_current_cell:
             continue
 
@@ -24,7 +24,7 @@ def naked_sets_find(board, set_size, all_units):
                 combined_candidates = set().union(*(board.get(c, set()) for c in cells_combination))
 
                 if len(combined_candidates) == set_size:
-                    common_units = solver_utils.get_common_units(all_units, *cells_combination)
+                    common_units = solver_utils.get_common_units(possibles_units, *cells_combination)
 
                     if common_units:
                         valid_naked_sets[cells_combination] = {
