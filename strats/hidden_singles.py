@@ -2,14 +2,14 @@ import utils
 import strats.solver_utils as solver_utils
 
 
-def hidden_singles(board, all_units):
+def hidden_singles(board, possibles_units):
     """Find hidden singles in the puzzle."""
 
     h_singles = []
     h_singles_text = []
 
     for cell, possibles in board.items():
-        visible_cells_of_current_cell = solver_utils.get_common_units(all_units, cell)
+        visible_cells_of_current_cell = solver_utils.get_common_units(possibles_units, cell)
         if not visible_cells_of_current_cell:
             continue
 

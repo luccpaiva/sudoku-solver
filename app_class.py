@@ -59,7 +59,7 @@ class Game:
 
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
-        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_swordfish4))
+        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_swordfish3))
         self.board.possibles = self.solver.update_possibles(self.board)
 
     # GAME LOOP

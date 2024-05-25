@@ -1,7 +1,7 @@
 import time
 from functools import wraps
 from itertools import combinations, chain
-from utils import CellType, BoardType
+from utils import CellType
 
 
 def get_combinations(iterable, r):
@@ -24,10 +24,10 @@ def get_cell_unit_keys(cells: list[CellType] or CellType):
         cells = (0, 0)
         unit_keys = {'Arow': 0, 'Ccol': 0, 'Bbox': 0}
         cells = [(0, 0), (3, 5)]
-        unit_keys = {'Arow': [0, 3], 'Ccol': [0, 5], 'Bbox': [0, 1]}
+        unit_keys = {'Arow': {0, 3}, 'Ccol': {0, 5}, 'Bbox': {0, 1}}
     """
 
-    def cell_to_unit_keys(cell: CellType):
+    def cell_to_unit_keys(cell):
         row, col = cell
         box = (row // 3) * 3 + (col // 3)
         return {'Arow': row, 'Bbox': box, 'Ccol': col}
@@ -55,7 +55,7 @@ def check_same_units(cells, unit_type):
     return True
 
 
-def get_common_units(all_units, *cells):
+def get_common_units(possibles_units, *cells):
     """Return the common units for multiple cells if they exist, classified by unit type.
     Since now dictionaries are ordered, we want the box to be row to be checked first, hence _A_row, _B_box...
     example:
@@ -76,10 +76,10 @@ def get_common_units(all_units, *cells):
         # Check if all cells belong to the same unit for the current unit type
         unit_key = cells_unit_keys[0][unit_type]
         if all(unit_key == cell_unit_keys[unit_type] for cell_unit_keys in cells_unit_keys):
-            unit_cells = all_units[unit_type][unit_key]
+            unit_cells = possibles_units[unit_type][unit_key]
             common_units[unit_type] = tuple(sorted(cell for cell in unit_cells if cell not in cells))
         else:
-            common_units[unit_type] = None
+            common_units[unit_type] = tuple()  # doesn't have to be None
 
     # If all the units are None, there are no common units among the cells
     if all(value is None or value == () for value in common_units.values()):

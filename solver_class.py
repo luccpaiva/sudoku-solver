@@ -1,5 +1,4 @@
 import utils
-from utils import BoardType, CellType
 from strat_handler import StratHandler
 import strats
 
@@ -8,7 +7,7 @@ class Solver:
     def __init__(self, current_board):
         self.board = current_board.board
         self.possibles = current_board.possibles
-        self.units = self.initialize_units()
+        self.possibles_units = self.initialize_units()
 
     def update_possibles(self, current_board):
 
@@ -104,7 +103,7 @@ class Solver:
         return result
 
     def hidden_singles(self):
-        h_singles, h_singles_text = strats.hidden_singles(self.possibles, self.units)
+        h_singles, h_singles_text = strats.hidden_singles(self.possibles, self.possibles_units)
 
         success = bool(h_singles)
 
@@ -132,7 +131,7 @@ class Solver:
 
             naked_sets = strats.naked_sets_find(self.possibles,
                                                 set_size,
-                                                self.units)
+                                                self.possibles_units)
 
             processed_naked_sets, highlight_list, eliminate_list = strats.naked_sets_process(self.possibles,
                                                                                              naked_sets)
@@ -164,7 +163,7 @@ class Solver:
                 case 4:
                     strat_name = 'Hidden Quads'
 
-            hidden_sets = strats.hidden_sets_find(self.possibles, set_size, self.units)
+            hidden_sets = strats.hidden_sets_find(self.possibles, set_size, self.possibles_units)
             highlight_list, eliminate_list = strats.hidden_sets_process(self.possibles, hidden_sets)
 
             success = bool(hidden_sets) and bool(eliminate_list)
@@ -182,7 +181,7 @@ class Solver:
                                     h_pairs_text)
 
     def intersection_removal(self, intersection_type):
-        pointing_pairs, box_reductions = strats.intersections_find(self.possibles, self.units)
+        pointing_pairs, box_reductions = strats.intersections_find(self.possibles, self.possibles_units)
 
         if intersection_type == 'Pointing Pairs':
             highlight_list, eliminate_list = strats.intersections_process(pointing_pairs)
@@ -208,7 +207,7 @@ class Solver:
         return result
 
     def x_wing(self):
-        x_wing_results = strats.x_wing_find(self.possibles, self.units)
+        x_wing_results = strats.x_wing_find(self.possibles, self.possibles_units)
 
         success = bool(x_wing_results)
         highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
@@ -228,7 +227,7 @@ class Solver:
         return result
 
     def swordfish(self):
-        swordfish_results = strats.swordfish_find(self.possibles, self.units)
+        swordfish_results = strats.swordfish_find(self.possibles, self.possibles_units)
 
         success = bool(swordfish_results)
         highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
