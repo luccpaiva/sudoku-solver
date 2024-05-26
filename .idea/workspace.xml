@@ -7,14 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="86665d01-93ab-4835-a802-657e622afd99" name="Default Changelist" comment="Swordfish strategy">
+    <list default="true" id="86665d01-93ab-4835-a802-657e622afd99" name="Default Changelist" comment="Fixing warnings">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/app_class.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/solver_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/solver_class.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strats/hidden_singles.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/hidden_singles.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strats/naked_sets.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/naked_sets.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strats/solver_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/solver_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/strats/swordfish.py" beforeDir="false" afterPath="$PROJECT_DIR$/strats/swordfish.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/z_last_loaded_puzzle" beforeDir="false" afterPath="$PROJECT_DIR$/z_last_loaded_puzzle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -95,7 +91,7 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="ProjectErrors" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
@@ -134,7 +130,7 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.38362464",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "advanced.settings",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
     "settings.editor.splitter.proportion": "0.23384616",
     "show.migrate.to.gradle.popup": "false",
     "vue.rearranger.settings.migration": "true"
@@ -414,7 +410,8 @@
       <workItem from="1716576459590" duration="13660000" />
       <workItem from="1716591300274" duration="1458000" />
       <workItem from="1716627450935" duration="827000" />
-      <workItem from="1716632667430" duration="3122000" />
+      <workItem from="1716632667430" duration="5678000" />
+      <workItem from="1716716601805" duration="1083000" />
     </task>
     <task id="LOCAL-00001" summary="test v1">
       <created>1625843362612</created>
@@ -527,7 +524,15 @@
       <option name="project" value="LOCAL" />
       <updated>1716543605250</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Fixing warnings">
+      <option name="closed" value="true" />
+      <created>1716639070336</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1716639070336</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -600,7 +605,8 @@
     <MESSAGE value="intersections strategy and minor updates" />
     <MESSAGE value="x-wing strategy" />
     <MESSAGE value="Swordfish strategy" />
-    <option name="LAST_COMMIT_MESSAGE" value="Swordfish strategy" />
+    <MESSAGE value="Fixing warnings" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixing warnings" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -619,6 +625,6 @@
     <select />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/sudoku_solver$main.coverage" NAME="main Coverage Results" MODIFIED="1716635747713" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/sudoku_solver$main.coverage" NAME="main Coverage Results" MODIFIED="1716717662888" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

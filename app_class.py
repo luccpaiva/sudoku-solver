@@ -435,6 +435,7 @@ class Game:
             # Determine the style based on whether it's the successful strategy
             # is_active_strategy = re.search(successful_strategy_name, strategy) if successful_strategy_name else False
             prefix, _, strategies = strategy.partition(' ')
+            # fix space issue ('Swordfish' instead of 'Swordfish ')
             is_active_strategy = successful_strategy_name in [prefix + ' ' + s for s in strategies.split('/')]
             style = 'stt_size_bold' if is_active_strategy else 'stt_size'
 
