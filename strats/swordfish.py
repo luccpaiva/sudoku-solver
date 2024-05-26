@@ -3,7 +3,7 @@ from itertools import combinations
 import strats.solver_utils as solver_utils
 
 
-def swordfish_potential(board: BoardType, all_units) -> dict:
+def swordfish_potential(unsolved_cells: BoardType, unsolved_units) -> dict:
     """
     The idea here is similar to X-Wing, but in a sense, reversed in terms of rows and columns.
     The main difference is that in the X-Wing, we look at a candidate that appears in exactly two rows or two columns,
@@ -23,14 +23,14 @@ def swordfish_potential(board: BoardType, all_units) -> dict:
     # three possible cells for a candidate in each of three different rows
     swordfish_candidates = {}
 
-    for unit_type, unit_cells in all_units.items():
+    for unit_type, unit_cells in unsolved_units.items():
         # skip empty and boxes
         if not unit_cells or unit_type == 'Bbox':
             continue
 
         for unit_index, unit in unit_cells.items():
             # Get a dictionary of candidates for each cell in the unit
-            candidates_dict = solver_utils.get_candidates_dict(board, unit)
+            candidates_dict = solver_utils.get_candidates_dict(unsolved_cells, unit)
 
             # Create a dicionary of potential swordfish candidates in the format:
             # (candidate, unit_type, unit_index): {'cells': [cell1, cell2, cell3]}
@@ -47,8 +47,8 @@ def swordfish_potential(board: BoardType, all_units) -> dict:
     return swordfish_candidates
 
 
-def swordfish_find(board: BoardType, all_units):
-    swordfish_candidates = swordfish_potential(board, all_units)
+def swordfish_find(unsolved_cells: BoardType, unsolved_units):
+    swordfish_candidates = swordfish_potential(unsolved_cells, unsolved_units)
 
     swordfish_results = {}
 
@@ -70,9 +70,9 @@ def swordfish_find(board: BoardType, all_units):
                 # now check whether the candidate appears in the other columns
                 swordfish_cells = [(row, col) for row in rows_union for col in comb]
                 removal_cells = []
-                swordfish_remaining_cells = [cell for row in rows_union for cell in all_units['Arow'][row]]
+                swordfish_remaining_cells = [cell for row in rows_union for cell in unsolved_units['Arow'][row]]
                 for cell in swordfish_remaining_cells:
-                    if candidate in board[cell] and cell not in swordfish_cells:
+                    if candidate in unsolved_cells[cell] and cell not in swordfish_cells:
                         removal_cells.append(cell)
 
                 if removal_cells:
@@ -92,9 +92,9 @@ def swordfish_find(board: BoardType, all_units):
                 # now check whether the candidate appears in the other rows
                 swordfish_cells = [(row, col) for row in comb for col in cols_union]
                 removal_cells = []
-                swordfish_remaining_cells = [cell for col in cols_union for cell in all_units['Ccol'][col]]
+                swordfish_remaining_cells = [cell for col in cols_union for cell in unsolved_units['Ccol'][col]]
                 for cell in swordfish_remaining_cells:
-                    if candidate in board[cell] and cell not in swordfish_cells:
+                    if candidate in unsolved_cells[cell] and cell not in swordfish_cells:
                         removal_cells.append(cell)
 
                 if removal_cells:

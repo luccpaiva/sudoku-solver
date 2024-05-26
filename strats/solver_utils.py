@@ -55,7 +55,7 @@ def check_same_units(cells, unit_type):
     return True
 
 
-def get_common_units(possibles_units, *cells):
+def get_common_units(unsolved_units, *cells):
     """Return the common units for multiple cells if they exist, classified by unit type.
     Since now dictionaries are ordered, we want the box to be row to be checked first, hence _A_row, _B_box...
     example:
@@ -76,7 +76,7 @@ def get_common_units(possibles_units, *cells):
         # Check if all cells belong to the same unit for the current unit type
         unit_key = cells_unit_keys[0][unit_type]
         if all(unit_key == cell_unit_keys[unit_type] for cell_unit_keys in cells_unit_keys):
-            unit_cells = possibles_units[unit_type][unit_key]
+            unit_cells = unsolved_units[unit_type][unit_key]
             common_units[unit_type] = tuple(sorted(cell for cell in unit_cells if cell not in cells))
         else:
             common_units[unit_type] = tuple()  # doesn't have to be None
