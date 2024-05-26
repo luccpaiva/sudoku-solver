@@ -2,18 +2,18 @@ from utils import format_cell
 import strats.solver_utils as solver_utils
 
 
-def intersections_find(board, all_units):
+def intersections_find(unsolved_cells, unsolved_units):
     box_reductions = {}
     pointing_pairs = {}
 
-    for unit_type, unit_cells in all_units.items():
+    for unit_type, unit_cells in unsolved_units.items():
         # skip the box because it's already checked against the other units
         if not unit_cells or unit_type == 'Bbox':
             continue
 
         for unit_index, unit in unit_cells.items():
             # Get a dictionary of candidates for each cell in the unit
-            candidates_dict = solver_utils.get_candidates_dict(board, unit)
+            candidates_dict = solver_utils.get_candidates_dict(unsolved_cells, unit)
 
             for candidate, candidate_cells_list in candidates_dict.items():
                 # Get all combinations of 2 or 3 cells from the candidate cells
@@ -24,12 +24,12 @@ def intersections_find(board, all_units):
                     # Check if the combination is in the same box
                     if solver_utils.check_same_units(combination, 'Bbox'):
                         box_index = solver_utils.get_cell_unit_keys(combination[0])['Bbox']
-                        cells_in_current_box = [cell for cell in all_units['Bbox'][box_index] if
+                        cells_in_current_box = [cell for cell in unsolved_units['Bbox'][box_index] if
                                                 cell not in combination]
 
                         # Find which cells in the box have the current candidate
                         candidate_box_cells = [cell for cell in cells_in_current_box if
-                                               candidate in board.get(cell, [])]
+                                               candidate in unsolved_cells.get(cell, [])]
 
                         # Candidate does not appear in the line (box-reduction)
                         if candidate_box_cells and len(candidate_cells_list) == len(combination):

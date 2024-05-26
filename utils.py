@@ -6,6 +6,7 @@ FULL_SET = set(range(1, 10))
 # ///////////////////////////////////////////////////////////////
 type CellType = tuple[int, int]
 type BoardType = dict[CellType, int]
+type UnitType = dict[str, dict[int, set]]
 
 
 # CONVERSION FUNCTIONS
@@ -62,7 +63,7 @@ def pos2cord(pos):
 
 def flatten(self) -> list[int]:
     """Flatten the current Sudoku board into a single list."""
-    return [item for sublist in self.board for item in sublist]
+    return [item for sublist in self.solved for item in sublist]
 
 
 def arr2str(arr: list[int]) -> str:
@@ -114,7 +115,7 @@ def get_cells(board: BoardType, *cells: CellType) -> set[int]:
     return results
 
 
-def set_cells(board, cells: list[tuple[CellType, int]]):
+def set_cells(board: BoardType, cells: list[tuple[CellType, int]]):
     """Set the given cells to the given values."""
     for cell, value in cells:
         board[cell] = value
@@ -122,7 +123,7 @@ def set_cells(board, cells: list[tuple[CellType, int]]):
     # return board
 
 
-def print_possibles(board: BoardType):
+def print_candidates(board: BoardType):
     for i in range(9):
         for j in range(9):
             key = (i, j)
