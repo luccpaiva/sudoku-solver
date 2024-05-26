@@ -1,6 +1,5 @@
-from utils import format_cell, CellType, BoardType
+from utils import format_cell, BoardType
 import strats.solver_utils as solver_utils
-from itertools import combinations
 
 
 def x_wing_potential(unsolved_cells: BoardType, unsolved_units) -> dict:
