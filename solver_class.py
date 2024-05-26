@@ -192,8 +192,8 @@ class Solver:
         i_removals_text = None
 
         if success:
-            i_removals_text = strats.format_intersections_text(box_reductions if intersection_type == 'Box-Reduction'
-                                                               else pointing_pairs,
+            i_removals = box_reductions if intersection_type == 'Box-Reduction' else pointing_pairs
+            i_removals_text = strats.format_intersections_text(i_removals,
                                                                intersection_type)
 
         result = StratHandler(intersection_type,
