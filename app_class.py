@@ -33,10 +33,10 @@ class Game:
         # ///////////////////////////////////////////////////////////////
         self.running = True
         self.selected = None
-        self.mousePos = None
-        self.actionMade = True
-        self.cellChanged = False
-        self.updateboard = False
+        self.mouse_pos = None
+        self.action_made = True
+        self.cell_changed = False
+        self.update_board = False
         self.state = IDLE
         self.no_strategies = False
 
@@ -59,8 +59,8 @@ class Game:
 
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
-        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_swordfish4))
-        self.board.possibles = self.solver.update_possibles(self.board)
+        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_swordfish3))
+        self.board.unsolved = self.solver.update_unsolved(self.board)
 
     # GAME LOOP
     # ///////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ class Game:
 
                 if cellSelected:
                     self.selected = cellSelected
-                    self.actionMade = True
+                    self.action_made = True
                 else:
                     self.selected = None
 
@@ -95,21 +95,21 @@ class Game:
                         if button.highlighted:
                             self.handle_button_action(button.text)
 
-            self.actionMade = True
+            self.action_made = True
             # USER TYPES A KEY
             # ///////////////////////////////////////////////////////////////
             if event.type == pg.KEYDOWN:
-                self.actionMade = True
+                self.action_made = True
 
                 if self.selected is not None and utils.is_int(event.unicode):
                     if self.selected in self.board.puzzle.keys():
                         print('Cannot change puzzle numbers')
 
-                    elif self.selected in self.board.board.keys() or self.selected in self.board.possibles.keys():
-                        utils.set_cells(self.board.board, [(self.selected, int(event.unicode))])
-                        self.board.possibles = self.solver.update_possibles(self.board)
+                    elif self.selected in self.board.solved.keys() or self.selected in self.board.unsolved.keys():
+                        utils.set_cells(self.board.solved, [(self.selected, int(event.unicode))])
+                        self.board.unsolved = self.solver.update_unsolved(self.board)
                         self.state = BOARD_UPDATING
-                        self.cellChanged = True
+                        self.cell_changed = True
 
                 if event.key == pg.K_SPACE:
                     self.step_handler()
@@ -142,13 +142,13 @@ class Game:
         elif self.state == STRATEGY_SUCCESSFUL:
 
             if self.strategy_result.eliminated_candidates:
-                self.board.possibles = (self.solver.remove_candidates
-                                        (self.board,
-                                         self.strategy_result.eliminated_candidates))
+                self.board.unsolved = (self.solver.remove_candidates
+                                       (self.board,
+                                        self.strategy_result.eliminated_candidates))
 
             if self.strategy_result.solved_cells:
-                utils.set_cells(self.board.board, self.strategy_result.solved_cells)
-                self.board.possibles = self.solver.update_possibles(self.board)
+                utils.set_cells(self.board.solved, self.strategy_result.solved_cells)
+                self.board.unsolved = self.solver.update_unsolved(self.board)
 
             self.state = IDLE  # Prepare for the next strategy
 
@@ -160,13 +160,13 @@ class Game:
             self.state = IDLE
 
     def playing_update(self):
-        self.mousePos = pg.mouse.get_pos()
+        self.mouse_pos = pg.mouse.get_pos()
 
         for button in self.playingButtons:
-            button.update(self.mousePos)
+            button.update(self.mouse_pos)
 
     def playing_draw(self):
-        if self.actionMade:
+        if self.action_made:
             self.window.fill(DARKMODE)
 
             if self.selected:
@@ -192,7 +192,7 @@ class Game:
 
             pg.display.flip()
 
-            self.actionMade = False
+            self.action_made = False
 
     # CLASS HELPER FUNCTIONS
     # ///////////////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ class Game:
 
     def load_test_puzzle(self, testpuzzle):
         self.board.puzzle = utils.str2grid(testpuzzle)
-        self.board.board = utils.str2grid(testpuzzle)
+        self.board.solved = utils.str2grid(testpuzzle)
         self.state = IDLE
 
     def get_puzzle(self, difficulty):
@@ -238,7 +238,7 @@ class Game:
                 board_str += '.'
 
         self.board.load_board(utils.str2grid(board_str))
-        self.board.possibles = self.solver.update_possibles(self.board)
+        self.board.unsolved = self.solver.update_unsolved(self.board)
         self.strategy_result = None
         self.no_strategies = False
 
@@ -279,7 +279,7 @@ class Game:
                 board_str += '.'
 
         self.board.load_board(utils.str2grid(board_str))
-        self.board.possibles = self.solver.update_possibles(self.board)
+        self.board.unsolved = self.solver.update_unsolved(self.board)
         self.strategy_result = None
         self.no_strategies = False
 
@@ -300,14 +300,14 @@ class Game:
 
     def draw_board_numbers(self):
         # common keys are merged, but the last dict overwrites, so the board.puzzle numbers are still blue
-        full_board = {**{coord: (value, BLUE) for coord, value in self.board.board.items()},
+        full_board = {**{coord: (value, BLUE) for coord, value in self.board.solved.items()},
                       **{coord: (value, LIGHTRED) for coord, value in self.board.puzzle.items()}}
 
         for (row, col), (value, color) in full_board.items():
             self.draw_cell_number(value, row, col, color)
 
     def draw_candidates_numbers(self):
-        for (row, col), candidates in self.board.possibles.items():
+        for (row, col), candidates in self.board.unsolved.items():
             for candidate in candidates:
                 self.draw_cell_candidates(candidate, row, col)
 
@@ -321,10 +321,10 @@ class Game:
                        (GRID_POS[0] + (row // 3 * 3 * CELL_SIZE), GRID_POS[1] + (col // 3 * 3 * CELL_SIZE)),
                        (3 * CELL_SIZE, 3 * CELL_SIZE))
 
-        current_num = self.board.board.get((col, row))
+        current_num = self.board.solved.get((col, row))
 
         if current_num:
-            for (i, j), num in (self.board.board.items() or self.board.puzzle.items()):
+            for (i, j), num in (self.board.solved.items() or self.board.puzzle.items()):
                 if num == current_num and (i, j) != (row, col):
                     self.draw_rect(DARKGRAY,
                                    (GRID_POS[0] + j * CELL_SIZE, GRID_POS[1] + i * CELL_SIZE),
@@ -435,6 +435,7 @@ class Game:
             # Determine the style based on whether it's the successful strategy
             # is_active_strategy = re.search(successful_strategy_name, strategy) if successful_strategy_name else False
             prefix, _, strategies = strategy.partition(' ')
+            # fix space issue ('Swordfish' instead of 'Swordfish ')
             is_active_strategy = successful_strategy_name in [prefix + ' ' + s for s in strategies.split('/')]
             style = 'stt_size_bold' if is_active_strategy else 'stt_size'
 
@@ -460,13 +461,13 @@ class Game:
                                         tough_strategies_start)
 
     def mouse_on_grid(self):
-        if self.mousePos[0] < GRID_POS[0] or self.mousePos[1] < GRID_POS[1]:
+        if self.mouse_pos[0] < GRID_POS[0] or self.mouse_pos[1] < GRID_POS[1]:
             return False
 
-        if self.mousePos[0] > GRID_POS[0] + GRID_SIZE or self.mousePos[1] > GRID_POS[1] + GRID_SIZE:
+        if self.mouse_pos[0] > GRID_POS[0] + GRID_SIZE or self.mouse_pos[1] > GRID_POS[1] + GRID_SIZE:
             return False
 
-        return (self.mousePos[1] - GRID_POS[1]) // CELL_SIZE, (self.mousePos[0] - GRID_POS[0]) // CELL_SIZE
+        return (self.mouse_pos[1] - GRID_POS[1]) // CELL_SIZE, (self.mouse_pos[0] - GRID_POS[0]) // CELL_SIZE
 
     def handle_button_action(self, button_text):
         match button_text:
@@ -478,7 +479,7 @@ class Game:
 
             case 'Load':
                 self.board.load_board(utils.str2grid(test_boards.TESTBOARD_npair))
-                self.board.possibles = self.solver.update_possibles(self.board)
+                self.board.unsolved = self.solver.update_unsolved(self.board)
 
             case 'Easy':
                 self.get_puzzle('1')
@@ -494,7 +495,7 @@ class Game:
 
             case 'Solution Count':
                 count_solutions(utils.dict2grid(self.board.puzzle), 'puzzle')
-                count_solutions(utils.dict2grid(self.board.board), 'current_board')
+                count_solutions(utils.dict2grid(self.board.solved), 'current_board')
 
             case 'Solve':
                 pass

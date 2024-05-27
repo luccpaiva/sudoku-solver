@@ -1,12 +1,12 @@
 import utils
 
 
-def naked_singles(board):
+def naked_singles(unsolved_cells):
     n_singles = []
-    for cell, possibles in board.items():
+    for cell, candidates in unsolved_cells.items():
         # Check if the cell has only one candidate
-        if len(possibles) == 1:
-            value = next(iter(possibles))
+        if len(candidates) == 1:
+            value = next(iter(candidates))
             n_singles.append((cell, value))
 
     n_singles_text = [f"{utils.pos2cord(cell)} set to {value}." for cell, value in n_singles]

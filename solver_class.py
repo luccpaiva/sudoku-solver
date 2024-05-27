@@ -1,29 +1,28 @@
 import utils
-from utils import BoardType, CellType
 from strat_handler import StratHandler
 import strats
 
 
 class Solver:
     def __init__(self, current_board):
-        self.board = current_board.board
-        self.possibles = current_board.possibles
-        self.units = self.initialize_units()
+        self.solved = current_board.solved
+        self.unsolved = current_board.unsolved
+        self.unsolved_units = self.initialize_units()
 
-    def update_possibles(self, current_board):
+    def update_unsolved(self, current_board):
 
         # In the case a cell was set, first eliminate the keys from the possibles:
-        current_board.possibles = {key: value for key, value in current_board.possibles.items() if
-                                   key not in current_board.board}
+        current_board.unsolved = {key: value for key, value in current_board.unsolved.items() if
+                                  key not in current_board.solved}
 
-        for cell in current_board.possibles.keys():
+        for cell in current_board.unsolved.keys():
             visible_units = self.get_visible_cells(cell)
             visible_cells = set.union(visible_units['row'], visible_units['col'], visible_units['box'])
-            taken_numbers = utils.get_cells(current_board.board, *visible_cells)
+            taken_numbers = utils.get_cells(current_board.solved, *visible_cells)
 
-            current_board.possibles[cell] -= taken_numbers
+            current_board.unsolved[cell] -= taken_numbers
 
-        return current_board.possibles
+        return current_board.unsolved
 
     @staticmethod
     def get_visible_cells(cell):
@@ -68,7 +67,7 @@ class Solver:
                  'Ccol': {i: set() for i in range(9)},
                  'Bbox': {i: set() for i in range(9)}}
 
-        for (row, col) in self.possibles.keys():
+        for (row, col) in self.unsolved.keys():
             box_index = (row // 3) * 3 + col // 3
 
             units['Arow'][row].add((row, col))
@@ -78,19 +77,19 @@ class Solver:
         return units
 
     def board_solved(self):
-        return len(self.board) == 81
+        return len(self.solved) == 81
 
     @staticmethod
     def remove_candidates(current_board, eliminated_candidates):
         for cell, candidate in eliminated_candidates:
-            current_board.possibles[cell].discard(candidate)
+            current_board.unsolved[cell].discard(candidate)
 
-        return current_board.possibles
+        return current_board.unsolved
 
     # STRATEGIES
     # ///////////////////////////////////////////////////////////////
     def naked_singles(self):
-        n_singles, n_singles_text = strats.naked_singles(self.possibles)
+        n_singles, n_singles_text = strats.naked_singles(self.unsolved)
         success = bool(n_singles)
 
         result = StratHandler('Naked Singles',
@@ -104,7 +103,7 @@ class Solver:
         return result
 
     def hidden_singles(self):
-        h_singles, h_singles_text = strats.hidden_singles(self.possibles, self.units)
+        h_singles, h_singles_text = strats.hidden_singles(self.unsolved, self.unsolved_units)
 
         success = bool(h_singles)
 
@@ -130,11 +129,11 @@ class Solver:
                 case 4:
                     strat_name = 'Naked Quads'
 
-            naked_sets = strats.naked_sets_find(self.possibles,
+            naked_sets = strats.naked_sets_find(self.unsolved,
                                                 set_size,
-                                                self.units)
+                                                self.unsolved_units)
 
-            processed_naked_sets, highlight_list, eliminate_list = strats.naked_sets_process(self.possibles,
+            processed_naked_sets, highlight_list, eliminate_list = strats.naked_sets_process(self.unsolved,
                                                                                              naked_sets)
 
             # Double check if there is something to eliminate
@@ -164,8 +163,8 @@ class Solver:
                 case 4:
                     strat_name = 'Hidden Quads'
 
-            hidden_sets = strats.hidden_sets_find(self.possibles, set_size, self.units)
-            highlight_list, eliminate_list = strats.hidden_sets_process(self.possibles, hidden_sets)
+            hidden_sets = strats.hidden_sets_find(self.unsolved, set_size, self.unsolved_units)
+            highlight_list, eliminate_list = strats.hidden_sets_process(self.unsolved, hidden_sets)
 
             success = bool(hidden_sets) and bool(eliminate_list)
 
@@ -182,7 +181,7 @@ class Solver:
                                     h_pairs_text)
 
     def intersection_removal(self, intersection_type):
-        pointing_pairs, box_reductions = strats.intersections_find(self.possibles, self.units)
+        pointing_pairs, box_reductions = strats.intersections_find(self.unsolved, self.unsolved_units)
 
         if intersection_type == 'Pointing Pairs':
             highlight_list, eliminate_list = strats.intersections_process(pointing_pairs)
@@ -193,8 +192,8 @@ class Solver:
         i_removals_text = None
 
         if success:
-            i_removals_text = strats.format_intersections_text(box_reductions if intersection_type == 'Box-Reduction'
-                                                               else pointing_pairs,
+            i_removals = box_reductions if intersection_type == 'Box-Reduction' else pointing_pairs
+            i_removals_text = strats.format_intersections_text(i_removals,
                                                                intersection_type)
 
         result = StratHandler(intersection_type,
@@ -208,7 +207,7 @@ class Solver:
         return result
 
     def x_wing(self):
-        x_wing_results = strats.x_wing_find(self.possibles, self.units)
+        x_wing_results = strats.x_wing_find(self.unsolved, self.unsolved_units)
 
         success = bool(x_wing_results)
         highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
@@ -228,7 +227,7 @@ class Solver:
         return result
 
     def swordfish(self):
-        swordfish_results = strats.swordfish_find(self.possibles, self.units)
+        swordfish_results = strats.swordfish_find(self.unsolved, self.unsolved_units)
 
         success = bool(swordfish_results)
         highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
