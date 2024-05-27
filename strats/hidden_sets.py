@@ -2,21 +2,21 @@ import strats.solver_utils as solver_utils
 from utils import format_cell
 
 
-def hidden_sets_find(board, set_size, all_units):
+def hidden_sets_find(unsolved_cells, set_size, unsolved_units):
     valid_hidden_sets = {}
 
-    for current_cell in board:
-        common_units = solver_utils.get_common_units(all_units, current_cell)
+    for current_cell in unsolved_cells:
+        common_units = solver_utils.get_common_units(unsolved_units, current_cell)
 
         # Store for each candidate the cells where it appears
         for unit_type, unit_cells in common_units.items():
             if not unit_cells:
                 continue
 
-            candidates_dict = solver_utils.get_candidates_dict(board, unit_cells)
+            candidates_dict = solver_utils.get_candidates_dict(unsolved_cells, unit_cells)
 
             # Include also the current cell candidates
-            for candidate in board.get(current_cell, []):
+            for candidate in unsolved_cells.get(current_cell, []):
                 candidates_dict.setdefault(candidate, []).append(current_cell)
 
             # Get the candidates that appear in up to set_size cells
@@ -39,7 +39,7 @@ def hidden_sets_find(board, set_size, all_units):
                 # Check each combination of candidates of size set_size
             for combined_candidates, cells in combined_sets.items():
                 # Check if the overall sum of candidates in unit is higher than set_size, otherwise not hidden set
-                overall_candidates = set().union(*(board.get(c, set()) for c in cells))
+                overall_candidates = set().union(*(unsolved_cells.get(c, set()) for c in cells))
                 if len(cells) == set_size and len(overall_candidates) > set_size:
                     valid_hidden_sets[cells] = {
                         'candidates': tuple(combined_candidates),
@@ -58,12 +58,12 @@ def hidden_sets_process(board, hidden_set):
         common_units = data['common_units']
 
         for cell in common_units:
-            cell_possibles = set(board.get(cell, []))
+            candidates = set(board.get(cell, []))
 
-            candidates_eliminate = cell_possibles - hidden_set_candidates
+            candidates_eliminate = candidates - hidden_set_candidates
             eliminated_candidates_list.extend((cell, candidate) for candidate in candidates_eliminate)
 
-            highlight_candidates = cell_possibles & hidden_set_candidates
+            highlight_candidates = candidates & hidden_set_candidates
             highlight_candidates_list.extend((cell, candidate) for candidate in highlight_candidates)
 
     return highlight_candidates_list, eliminated_candidates_list

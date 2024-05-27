@@ -1,20 +1,19 @@
-from utils import format_cell, CellType, BoardType
+from utils import format_cell, BoardType
 import strats.solver_utils as solver_utils
-from itertools import combinations
 
 
-def x_wing_potential(board: BoardType, all_units) -> dict:
+def x_wing_potential(unsolved_cells: BoardType, unsolved_units) -> dict:
     # two possible cells for a candidate in each of two different rows
     x_wing_candidates = {}
 
-    for unit_type, unit_cells in all_units.items():
+    for unit_type, unit_cells in unsolved_units.items():
         # skip empty and boxes
         if not unit_cells or unit_type == 'Bbox':
             continue
 
         for unit_index, unit in unit_cells.items():
             # Get a dictionary of candidates for each cell in the unit
-            candidates_dict = solver_utils.get_candidates_dict(board, unit)
+            candidates_dict = solver_utils.get_candidates_dict(unsolved_cells, unit)
 
             # Create a dicionary of potential x-wing candidates in the format:
             # (candidate, unit_type, unit_index): {'cells': [cell1, cell2]}
@@ -31,8 +30,8 @@ def x_wing_potential(board: BoardType, all_units) -> dict:
     return x_wing_candidates
 
 
-def x_wing_find(board: BoardType, all_units):
-    x_wing_candidates = x_wing_potential(board, all_units)
+def x_wing_find(unsolved_cells: BoardType, unsolved_units):
+    x_wing_candidates = x_wing_potential(unsolved_cells, unsolved_units)
 
     x_wing_results = {}
 
@@ -59,7 +58,7 @@ def x_wing_find(board: BoardType, all_units):
                 if current_unit_keys['Ccol'] == remaining_unit_keys['Ccol']:
                     # check whether the candidate actually appears in the columns
                     removal_cells = []
-                    col_cells_dict = {cell: board[cell] for cell in board if cell[1] in current_unit_keys['Ccol']}
+                    col_cells_dict = {cell: unsolved_cells[cell] for cell in unsolved_cells if cell[1] in current_unit_keys['Ccol']}
                     for cell, cell_candidates in col_cells_dict.items():
                         if candidate in cell_candidates and cell not in (current_cells_list + remaining_cells_list):
                             removal_cells.append(cell)
@@ -87,7 +86,7 @@ def x_wing_find(board: BoardType, all_units):
                 if current_unit_keys['Arow'] == remaining_unit_keys['Arow']:
                     # check whether the candidate actually appears in the rows
                     removal_cells = []
-                    row_cells_dict = {cell: board[cell] for cell in board if cell[0] in current_unit_keys['Arow']}
+                    row_cells_dict = {cell: unsolved_cells[cell] for cell in unsolved_cells if cell[0] in current_unit_keys['Arow']}
                     for cell, cell_candidates in row_cells_dict.items():
                         if candidate in cell_candidates and cell not in (current_cells_list + remaining_cells_list):
                             removal_cells.append(cell)
