@@ -9,6 +9,21 @@ from settings import (
 )
 
 
+def _expand_display_label(label: str) -> list[str]:
+    """Expand a display label into the strategy names it covers.
+    Examples:
+        'X-Wing'              → ['X-Wing']
+        'Naked Pairs/Triples' → ['Naked Pairs', 'Naked Triples']
+        'Naked/Hidden Quads'  → ['Naked Quads', 'Hidden Quads']
+    """
+    if '/' not in label:
+        return [label]
+    parts = label.split(' ')
+    slash_idx = next(i for i, p in enumerate(parts) if '/' in p)
+    variants = parts[slash_idx].split('/')
+    return [' '.join(parts[:slash_idx] + [v] + parts[slash_idx + 1:]) for v in variants]
+
+
 class Renderer:
     def __init__(self, window: pg.Surface):
         self.window = window
@@ -137,12 +152,23 @@ class Renderer:
             self._text_to_screen(solved_cell_text, pos, 'stt_size', WHITE)
 
     def draw_strategy_list(self, strategy_result, basic_stt_list, tough_stt_list):
-        self._draw_strategy_section('Basic Strategies', basic_stt_list,
-                                    [STT_LIST_POS[0] + 10, STT_LIST_POS[1] + 10], strategy_result)
-        self._draw_strategy_section('Tough Strategies', tough_stt_list,
-                                    [STT_LIST_POS[0] + 280, STT_LIST_POS[1] + 10], strategy_result)
+        successful_name = strategy_result.name if strategy_result else None
+        # Naked Singles is not shown in the list; don't print NO for anything before it
+        should_print_no = bool(strategy_result) and successful_name != 'Naked Singles'
 
-    def _draw_strategy_section(self, title, strats, start_pos, strategy_result):
+        should_print_no = self._draw_strategy_section(
+            'Basic Strategies', basic_stt_list,
+            [STT_LIST_POS[0] + 10, STT_LIST_POS[1] + 10],
+            successful_name, should_print_no,
+        )
+        self._draw_strategy_section(
+            'Tough Strategies', tough_stt_list,
+            [STT_LIST_POS[0] + 280, STT_LIST_POS[1] + 10],
+            successful_name, should_print_no,
+        )
+
+    def _draw_strategy_section(self, title, strats, start_pos, successful_name, should_print_no) -> bool:
+        """Draw one strategy column. Returns the updated should_print_no flag for the next section."""
         pos_list = [start_pos[0], start_pos[1] + 10]
         pos_indicator = [start_pos[0] + 220, start_pos[1] + 10]
 
@@ -150,24 +176,21 @@ class Renderer:
         pos_list[1] += 10
         pos_indicator[1] += 10
 
-        successful_strategy_name = strategy_result.name if strategy_result else None
-        should_print_no = successful_strategy_name != 'Naked Singles'
-
         for strategy in strats:
             pos_list[1] += 25
             pos_indicator[1] += 25
 
-            prefix, _, strategies = strategy.partition(' ')
-            is_active = successful_strategy_name in [prefix + ' ' + s for s in strategies.split('/')]
+            is_active = successful_name in _expand_display_label(strategy)
             style = 'stt_size_bold' if is_active else 'stt_size'
-
             self._text_to_screen(strategy, pos_list, style, WHITE)
 
             if is_active:
                 self._text_to_screen('YES', pos_indicator, 'stt_size_bold', GREEN)
                 should_print_no = False
-            elif should_print_no and strategy_result:
+            elif should_print_no:
                 self._text_to_screen('NO', pos_indicator, 'stt_size_bold', RED)
+
+        return should_print_no
 
     # PRIMITIVE DRAW HELPERS
     # ///////////////////////////////////////////////////////////////
