@@ -1,5 +1,6 @@
 import strats.solver_utils as solver_utils
 import utils
+from utils import UnitKey
 
 
 def naked_sets_find(unsolved_cells, set_size, unsolved_units):
@@ -18,7 +19,6 @@ def naked_sets_find(unsolved_cells, set_size, unsolved_units):
             if not unit_cells:
                 continue
 
-            # Get all the combinations of cells within the unit (without the current cell, add it later)
             for combo in solver_utils.get_combinations(unit_cells, set_size - 1):
                 cells_combination = tuple(sorted([cell] + list(combo)))
                 combined_candidates = set().union(*(unsolved_cells.get(c, set()) for c in cells_combination))
@@ -74,16 +74,14 @@ def naked_sets_process(unsolved_cells, naked_set):
     return processed_naked_sets, highlight_candidates_list, eliminated_candidates_list
 
 
-def naked_sets_text_format(result_dict, naked_set_name):
+def format_naked_sets_text(result_dict, naked_set_name):
     text = []
     for conjugate, data in result_dict.items():
         candidates = "/".join(map(str, data['candidates']))
         cells = "/".join([utils.format_cell(cell) for cell in conjugate])
         for unit_type, cells_to_remove_from in data['common_units'].items():
-            if cells_to_remove_from:  # Check if set is not empty
+            if cells_to_remove_from:
                 removal_cells = ", ".join([utils.format_cell(c) for c in cells_to_remove_from])
-                unit_name = unit_type[1:]
                 text.append(
-                    f"{naked_set_name} ({unit_name}): {cells} removes {candidates} from {removal_cells}")
-
+                    f"{naked_set_name} ({unit_type.value}): {cells} removes {candidates} from {removal_cells}")
     return text

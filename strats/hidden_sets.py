@@ -1,3 +1,4 @@
+from itertools import combinations
 import strats.solver_utils as solver_utils
 from utils import format_cell
 
@@ -8,7 +9,6 @@ def hidden_sets_find(unsolved_cells, set_size, unsolved_units):
     for current_cell in unsolved_cells:
         common_units = solver_utils.get_common_units(unsolved_units, current_cell)
 
-        # Store for each candidate the cells where it appears
         for unit_type, unit_cells in common_units.items():
             if not unit_cells:
                 continue
@@ -26,7 +26,7 @@ def hidden_sets_find(unsolved_cells, set_size, unsolved_units):
                     potential_hidden_sets.setdefault(candidate, []).append(cells)
 
             combined_sets = {}
-            for candidate_combo in solver_utils.combinations(potential_hidden_sets.keys(), set_size):
+            for candidate_combo in combinations(potential_hidden_sets.keys(), set_size):
                 merged_cells = set()
 
                 for candidate in candidate_combo:
@@ -36,9 +36,7 @@ def hidden_sets_find(unsolved_cells, set_size, unsolved_units):
                         merged_cells.update(cells)
                         combined_sets[candidate_combo] = tuple(sorted(merged_cells))
 
-                # Check each combination of candidates of size set_size
             for combined_candidates, cells in combined_sets.items():
-                # Check if the overall sum of candidates in unit is higher than set_size, otherwise not hidden set
                 overall_candidates = set().union(*(unsolved_cells.get(c, set()) for c in cells))
                 if len(cells) == set_size and len(overall_candidates) > set_size:
                     valid_hidden_sets[cells] = {
@@ -73,8 +71,6 @@ def format_hidden_sets_text(result_dict, hidden_set_name):
     text = []
     for conjugate, data in result_dict.items():
         cells = "/".join([format_cell(cell) for cell in conjugate])
-
         removal_cells = ", ".join([format_cell(c) for c in conjugate])
         text.append(f"{hidden_set_name} {cells} removes remaining candidates from {removal_cells}")
-
     return text

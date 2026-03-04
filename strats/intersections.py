@@ -1,4 +1,4 @@
-from utils import format_cell
+from utils import format_cell, UnitKey
 import strats.solver_utils as solver_utils
 
 
@@ -7,27 +7,22 @@ def intersections_find(unsolved_cells, unsolved_units):
     pointing_pairs = {}
 
     for unit_type, unit_cells in unsolved_units.items():
-        # skip the box because it's already checked against the other units
-        if not unit_cells or unit_type == 'Bbox':
+        # Skip the box because it's already checked against the other units
+        if not unit_cells or unit_type == UnitKey.BOX:
             continue
 
         for unit_index, unit in unit_cells.items():
-            # Get a dictionary of candidates for each cell in the unit
             candidates_dict = solver_utils.get_candidates_dict(unsolved_cells, unit)
 
             for candidate, candidate_cells_list in candidates_dict.items():
-                # Get all combinations of 2 or 3 cells from the candidate cells
-                cells_combinations = list(solver_utils.get_chained_combinations(candidate_cells_list,
-                                                                                [2, 3]))
+                cells_combinations = list(solver_utils.get_chained_combinations(candidate_cells_list, [2, 3]))
 
                 for combination in cells_combinations:
-                    # Check if the combination is in the same box
-                    if solver_utils.check_same_units(combination, 'Bbox'):
-                        box_index = solver_utils.get_cell_unit_keys(combination[0])['Bbox']
-                        cells_in_current_box = [cell for cell in unsolved_units['Bbox'][box_index] if
+                    if solver_utils.check_same_units(combination, UnitKey.BOX):
+                        box_index = solver_utils.get_cell_unit_keys(combination[0])[UnitKey.BOX]
+                        cells_in_current_box = [cell for cell in unsolved_units[UnitKey.BOX][box_index] if
                                                 cell not in combination]
 
-                        # Find which cells in the box have the current candidate
                         candidate_box_cells = [cell for cell in cells_in_current_box if
                                                candidate in unsolved_cells.get(cell, [])]
 
@@ -41,7 +36,7 @@ def intersections_find(unsolved_cells, unsolved_units):
                                 'box': box_index,
                             }
 
-                        # Candidate appears outside the the box (pointing pair)
+                        # Candidate appears outside the box (pointing pair)
                         elif not candidate_box_cells and len(candidate_cells_list) > len(combination):
                             pointing_pairs[combination] = {
                                 'unit_type': unit_type,
@@ -72,7 +67,7 @@ def format_intersections_text(i_removals, intersection_type):
     for _, data in i_removals.items():
         cells = "/".join(format_cell(cell) for cell in data['cells'])
         candidate = data['candidate']
-        unit_type = data['unit_type'][1:].capitalize()
+        unit_type = data['unit_type'].value.capitalize()
         unit_index = data['unit_index'] + 1
         box_index = data['box'] + 1
         formatted_text.append(
