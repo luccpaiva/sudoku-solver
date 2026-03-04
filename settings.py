@@ -1,12 +1,17 @@
+from enum import Enum
+
 # FPS
 # ///////////////////////////////////////////////////////////////
 FPS = 5
 
+
 # GAME STATES
 # ///////////////////////////////////////////////////////////////
-IDLE = "idle"
-STRATEGY_SUCCESSFUL = "strategy_successful"
-BOARD_UPDATING = "board_updating"
+class GameState(Enum):
+    IDLE = "idle"
+    STRATEGY_SUCCESSFUL = "strategy_successful"
+    BOARD_UPDATING = "board_updating"
+
 
 # COLOURS
 # ///////////////////////////////////////////////////////////////
