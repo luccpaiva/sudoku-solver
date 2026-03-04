@@ -1,18 +1,13 @@
-
-
 class Board:
     def __init__(self, puzzle: list[list[int]] = None):
-        self.puzzle = {}  # Dict for the initial puzzle
-        self.solved = {}  # Dict for the current state of the board
-        self.unsolved = {}  # Dict for possible values for each cell
+        self.puzzle = {}   # Dict for the initial puzzle clues
+        self.solved = {}   # Dict for the current board state (clues + user input)
+        self.unsolved = {} # Dict for possible candidate values for each empty cell
         if puzzle:
             self.load_board(puzzle)
 
     def load_board(self, puzzle: list[list[int]]):
         assert len(puzzle) == 9 and all(len(row) == 9 for row in puzzle), "Invalid puzzle size"
-
-        self.puzzle.clear()
-        self.solved.clear()
 
         self.puzzle = {
             (row, col): value
@@ -20,12 +15,15 @@ class Board:
             for col, value in enumerate(row_data) if value != 0
         }
 
-        self.solved = self.puzzle.copy()  # Board gets the initial state from the puzzle
+        self.solved = self.puzzle.copy()
         self.initialize_unsolved()
 
     def initialize_unsolved(self):
         all_cells = {(i, j): set(range(1, 10)) for i in range(9) for j in range(9)}
         self.unsolved = {key: value for key, value in all_cells.items() if key not in self.puzzle}
+
+    def is_solved(self) -> bool:
+        return len(self.solved) == 81
 
     def print_board(self):
         for i in range(9):
