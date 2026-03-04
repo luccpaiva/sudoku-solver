@@ -1,12 +1,26 @@
+from enum import StrEnum
+
 # CONSTANTS
 # ///////////////////////////////////////////////////////////////
 FULL_SET = set(range(1, 10))
+
+# UNIT KEY ENUM
+# ///////////////////////////////////////////////////////////////
+class UnitKey(StrEnum):
+    """Identifies the three unit types in a Sudoku grid.
+    Iteration order (ROW → BOX → COL) is intentional: strategies check rows before boxes before columns.
+    """
+    ROW = 'row'
+    BOX = 'box'
+    COL = 'col'
+
+UNIT_ORDER: list['UnitKey'] = [UnitKey.ROW, UnitKey.BOX, UnitKey.COL]
 
 # TYPE HINTS
 # ///////////////////////////////////////////////////////////////
 type CellType = tuple[int, int]
 type BoardType = dict[CellType, int]
-type UnitType = dict[str, dict[int, set]]
+type UnitMapType = dict[UnitKey, dict[int, set]]
 
 
 # CONVERSION FUNCTIONS
@@ -61,9 +75,9 @@ def pos2cord(pos):
     return int2char(pos[0]) + str(pos[1] + 1)
 
 
-def flatten(self) -> list[int]:
-    """Flatten the current Sudoku board into a single list."""
-    return [item for sublist in self.solved for item in sublist]
+def flatten(grid: list[list[int]]) -> list[int]:
+    """Flatten a 2D Sudoku grid into a single list."""
+    return [item for sublist in grid for item in sublist]
 
 
 def arr2str(arr: list[int]) -> str:
@@ -72,9 +86,9 @@ def arr2str(arr: list[int]) -> str:
     return ''.join(str(digit) if digit != 0 else '.' for digit in arr)
 
 
-def grid2str(self) -> str:
-    """Convert the current 2D Sudoku board to its string representation."""
-    return self.arr2str(self.flatten())
+def grid2str(grid: list[list[int]]) -> str:
+    """Convert a 2D Sudoku board to its string representation."""
+    return arr2str(flatten(grid))
 
 
 def str2arr(string):
@@ -119,8 +133,6 @@ def set_cells(board: BoardType, cells: list[tuple[CellType, int]]):
     """Set the given cells to the given values."""
     for cell, value in cells:
         board[cell] = value
-
-    # return board
 
 
 def print_candidates(board: BoardType):
