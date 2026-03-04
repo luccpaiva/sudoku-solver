@@ -46,7 +46,7 @@ sudoku-solver/
     └── solver_utils.py    # Shared utilities (unit keys, combinations)
 ```
 
-## Strategies implemented
+## Strategies implemented so far
 
 | Difficulty | Strategy |
 |------------|----------|
