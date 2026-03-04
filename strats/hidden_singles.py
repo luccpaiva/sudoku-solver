@@ -4,7 +4,6 @@ import strats.solver_utils as solver_utils
 
 def hidden_singles(unsolved_cells, unsolved_units):
     """Find hidden singles in the puzzle."""
-
     h_singles = []
     h_singles_text = []
 
@@ -13,7 +12,7 @@ def hidden_singles(unsolved_cells, unsolved_units):
         if not visible_cells_of_current_cell:
             continue
 
-        hidden_in_units = []  # Store the unit (row, column or box) where the cell is a hidden single
+        hidden_in_units = []
         hidden_single = None
 
         for unit_type, unit_cells in visible_cells_of_current_cell.items():
@@ -31,9 +30,7 @@ def hidden_singles(unsolved_cells, unsolved_units):
 
         if hidden_in_units:
             h_singles.append((cell, hidden_single))
-            text = format_hidden_single_text(cell,
-                                             hidden_single,
-                                             hidden_in_units) if hidden_in_units else None
+            text = format_hidden_single_text(cell, hidden_single, hidden_in_units)
             h_singles_text.append(text)
 
     return h_singles, h_singles_text
@@ -41,9 +38,8 @@ def hidden_singles(unsolved_cells, unsolved_units):
 
 def format_hidden_single_text(cell, hidden_single, hidden_in_units):
     """Formats the descriptive text for a found hidden single."""
-    units_text = ', '.join([unit[1:] for unit in hidden_in_units])
+    units_text = ', '.join([unit.value for unit in hidden_in_units])
 
-    # If there are multiple units, use 'and' for the last one
     if len(hidden_in_units) > 1:
         last_comma_idx = units_text.rfind(',')
         units_text = units_text[:last_comma_idx] + ' and' + units_text[last_comma_idx + 1:]
