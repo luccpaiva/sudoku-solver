@@ -64,7 +64,7 @@ class Game:
             self.playing_buttons.append(Button(**props))
 
         # INITIAL BOARD
-        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_swordfish3))
+        self.board.load_board(utils.str2grid(test_boards.DEMO_puzzle_x_wing))
         self.board.unsolved = self.solver.update_unsolved(self.board)
 
     # GAME LOOP
