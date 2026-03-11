@@ -1,6 +1,7 @@
 # Sudoku Solver
 
 A Sudoku solver with a PyGame UI that applies human-like strategies step by step, helping you analyse and understand your own game.
+<video src="https://github.com/user-attachments/assets/9e53b61f-5aa2-4945-ac83-784cb91ec970" controls width="100%"></video>
 
 ## How to run
 
