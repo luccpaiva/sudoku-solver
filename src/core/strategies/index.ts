@@ -1,0 +1,8 @@
+export { nakedSingles } from './nakedSingles'
+export { hiddenSingles } from './hiddenSingles'
+export { nakedPairs, nakedTriples, nakedQuads } from './nakedSets'
+export { hiddenPairs, hiddenTriples, hiddenQuads } from './hiddenSets'
+export { pointingPairs, boxReduction } from './intersections'
+export { xWing } from './xWing'
+export { swordfish } from './swordfish'
+export { jellyfish } from './jellyfish'

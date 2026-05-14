@@ -50,7 +50,9 @@ class Game:
         # ///////////////////////////////////////////////////////////////
         self.basic_stt_list = ['Hidden Singles', 'Naked Pairs/Triples',
                                'Hidden Pairs/Triples', 'Naked/Hidden Quads', 'Pointing Pairs', 'Box-Reduction']
-        self.tough_stt_list = ['X-Wing', 'Simple Colouring', 'Y-Wing', 'Rect Elim', 'Swordfish', 'XYZ-Wing', 'BUG']
+        self.tough_stt_list = ['X-Wing', 'Simple Colouring', 'Y-Wing', 'Rect. Elim.', 'Swordfish/Jellyfish',
+                               'XYZ-Wing',
+                               'BUG']
 
         # BUTTONS
         # ///////////////////////////////////////////////////////////////
@@ -59,7 +61,7 @@ class Game:
 
         # LOAD THESE METHODS WHEN THE PROGRAM OPENS, FOR TESTING
         # ///////////////////////////////////////////////////////////////
-        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_swordfish3))
+        self.board.load_board(utils.str2grid(test_boards.TESTBOARD_jellyfish4))
         self.board.unsolved = self.solver.update_unsolved(self.board)
 
     # GAME LOOP
@@ -126,7 +128,8 @@ class Game:
                           lambda: self.solver.intersection_removal('Pointing Pairs'),
                           lambda: self.solver.intersection_removal('Box-Reduction'),
                           lambda: self.solver.x_wing(),
-                          lambda: self.solver.swordfish()
+                          lambda: self.solver.swordfish(),
+                          lambda: self.solver.jellyfish(),
                           ]
 
             for strategy in strategies:
@@ -432,11 +435,16 @@ class Game:
             pos_list[1] += 25
             pos_indicator[1] += 25
 
-            # Determine the style based on whether it's the successful strategy
-            # is_active_strategy = re.search(successful_strategy_name, strategy) if successful_strategy_name else False
-            prefix, _, strategies = strategy.partition(' ')
-            # fix space issue ('Swordfish' instead of 'Swordfish ')
-            is_active_strategy = successful_strategy_name in [prefix + ' ' + s for s in strategies.split('/')]
+            # Determine the style based on whether it is the successful strategy
+            # Split the strategy name into its components
+            if ' ' in strategy:
+                prefix, suffixes = strategy.split(' ', 1)
+                components = [prefix + ' ' + s.strip() for s in suffixes.split('/')]
+            else:
+                components = [strategy]
+
+            # Check if the successful strategy matches any of the components
+            is_active_strategy = successful_strategy_name in components if successful_strategy_name else False
             style = 'stt_size_bold' if is_active_strategy else 'stt_size'
 
             self.text_to_screen(strategy, pos_list, style, WHITE)

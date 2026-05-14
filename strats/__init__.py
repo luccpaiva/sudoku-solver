@@ -7,3 +7,4 @@ from strats.hidden_sets import hidden_sets_find, hidden_sets_process, format_hid
 from strats.intersections import intersections_find, intersections_process, format_intersections_text
 from strats.x_wing import x_wing_find, x_wing_process
 from strats.swordfish import swordfish_find, swordfish_process
+from strats.jellyfish import jellyfish_find, jellyfish_process
