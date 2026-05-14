@@ -216,7 +216,7 @@ class Solver:
             highlight_candidates, eliminated_candidates, highlight_cells, description = strats.x_wing_process(
                 x_wing_results)
 
-        result = StratHandler('X-Wing ',
+        result = StratHandler('X-Wing',
                               success,
                               None,
                               highlight_cells if success else None,
@@ -236,7 +236,27 @@ class Solver:
             highlight_candidates, eliminated_candidates, highlight_cells, description = strats.swordfish_process(
                 swordfish_results)
 
-        result = StratHandler('Swordfish ',
+        result = StratHandler('Swordfish',
+                              success,
+                              None,
+                              highlight_cells if success else None,
+                              highlight_candidates if success else None,
+                              eliminated_candidates if success else None,
+                              description if success else None)
+
+        return result
+
+    def jellyfish(self):
+        jellyfish_results = strats.jellyfish_find(self.unsolved, self.unsolved_units)
+
+        success = bool(jellyfish_results)
+        highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
+
+        if success:
+            highlight_candidates, eliminated_candidates, highlight_cells, description = strats.jellyfish_process(
+                jellyfish_results)
+
+        result = StratHandler('Jellyfish',
                               success,
                               None,
                               highlight_cells if success else None,
