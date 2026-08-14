@@ -5,48 +5,62 @@ import { Controls } from '@/components/Controls/Controls'
 import { Explainer } from '@/components/Explainer/Explainer'
 import { PuzzleLoader } from '@/components/PuzzleLoader/PuzzleLoader'
 import { useSolverStore } from '@/store/solverStore'
+import { useUIStore } from '@/store/uiStore'
 import { TEST_BOARDS } from '@/data/testBoards'
+import { theme } from '@/theme'
 
 export default function App() {
   const loadPuzzle = useSolverStore(s => s.loadPuzzleFromString)
   const stepCount = useSolverStore(s => s.cursor)
+  const darkMode = useUIStore(s => s.darkMode)
+  const toggleDark = useUIStore(s => s.toggleDark)
 
-  // Load a default puzzle on first render
   useEffect(() => {
-    loadPuzzle(TEST_BOARDS[0].puzzle)
+    // ?puzzle=<81 chars> loads a shared puzzle; ?autofind runs the solver once
+    const params = new URLSearchParams(window.location.search)
+    const puzzle = params.get('puzzle')
+    loadPuzzle(puzzle && puzzle.length >= 81 ? puzzle : TEST_BOARDS[0].puzzle)
+    if (params.has('autofind')) useSolverStore.getState().findNext()
   }, [])
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+  }, [darkMode])
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Header */}
-      <header className="border-b border-slate-800 px-6 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold tracking-tight">
+    <div className={`min-h-screen ${theme.app.bg} ${theme.app.text} flex flex-col transition-colors`}>
+      <header className="masthead px-6 py-3 flex items-center justify-between">
+        <h1 className="font-display text-xl tracking-wide">
           Sudoku Solver
-          <span className="ml-2 text-xs font-normal text-slate-500">step-by-step</span>
+          <span className={`ml-3 text-[10px] font-sans font-semibold uppercase tracking-[0.25em] ${theme.app.muted}`}>
+            strategy trainer
+          </span>
         </h1>
-        <span className="text-xs text-slate-500">
-          step {stepCount}
-        </span>
+        <div className="flex items-center gap-4">
+          <span className={`text-xs tabular-nums ${theme.app.muted}`}>step {stepCount}</span>
+          <button
+            onClick={toggleDark}
+            aria-label={darkMode ? 'Switch to light theme' : 'Switch to dark theme'}
+            className={`h-7 w-7 rounded-[var(--radius)] border ${theme.app.border} text-sm ${theme.app.muted} hover:text-ink transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-accent`}
+          >
+            {darkMode ? '☀' : '☾'}
+          </button>
+        </div>
       </header>
 
-      {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: strategy list */}
-        <aside className="w-52 shrink-0 border-r border-slate-800 p-4 overflow-y-auto">
-          <StrategyPanel />
-        </aside>
-
-        {/* Center: board */}
-        <main className="flex-1 flex items-center justify-center p-6">
+        <main className="flex-1 flex flex-col items-center justify-start pt-6 px-6 pb-6 gap-5 overflow-y-auto">
           <SudokuBoard />
+          <div style={{ width: 'min(540px, 90vw)' }}>
+            <Explainer />
+          </div>
         </main>
 
-        {/* Right: controls + explainer + loader */}
-        <aside className="w-72 shrink-0 border-l border-slate-800 p-4 flex flex-col gap-5 overflow-y-auto">
+        <aside className={`w-80 shrink-0 border-l ${theme.app.border} p-5 flex flex-col gap-6 overflow-y-auto`}>
           <Controls />
-          <hr className="border-slate-800" />
-          <Explainer />
-          <hr className="border-slate-800" />
+          <hr className={theme.app.border} />
+          <StrategyPanel />
+          <hr className={theme.app.border} />
           <PuzzleLoader />
         </aside>
       </div>

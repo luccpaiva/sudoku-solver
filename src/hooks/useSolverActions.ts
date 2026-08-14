@@ -1,24 +1,20 @@
 import { useCallback } from 'react'
 import { useSolverStore } from '@/store/solverStore'
+import { useUIStore } from '@/store/uiStore'
 
-/**
- * Keyboard-aware solver step handler.
- * First call: finds next strategy (shows highlights).
- * Second call: applies pending result.
- * Mirrors the Python two-phase Space-key behaviour.
- */
 export function useSolverStep() {
   const pending = useSolverStore(s => s.pending)
   const findNext = useSolverStore(s => s.findNext)
   const applyPending = useSolverStore(s => s.applyPending)
+  const enabledStrategies = useUIStore(s => s.enabledStrategies)
 
   return useCallback(() => {
     if (pending === null) {
-      findNext()
+      findNext(enabledStrategies)
     } else {
       applyPending()
     }
-  }, [pending, findNext, applyPending])
+  }, [pending, findNext, applyPending, enabledStrategies])
 }
 
 /**

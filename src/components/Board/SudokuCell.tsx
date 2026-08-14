@@ -1,8 +1,8 @@
 import type { CellViewModel } from '@/core/types'
 import { CandidateGrid } from './CandidateGrid'
 import { useUIStore } from '@/store/uiStore'
-import { useSolverStore } from '@/store/solverStore'
 import { useCellKeyHandler } from '@/hooks/useSolverActions'
+import { theme } from '@/theme'
 
 type Props = {
   cell: CellViewModel
@@ -14,7 +14,7 @@ export function SudokuCell({ cell, showCandidates }: Props) {
   const handleKey = useCellKeyHandler()
 
   const bg = getCellBg(cell)
-  const textColor = cell.isGiven ? 'text-slate-200 font-semibold' : 'text-blue-400'
+  const textColor = cell.isGiven ? theme.value.given : theme.value.input
 
   return (
     <div
@@ -23,6 +23,7 @@ export function SudokuCell({ cell, showCandidates }: Props) {
       aria-label={`Cell ${cell.idx}, value ${cell.value ?? 'empty'}`}
       className={`
         relative flex items-center justify-center
+        w-full h-full
         cursor-pointer select-none focus:outline-none
         ${bg}
         transition-colors duration-75
@@ -34,7 +35,7 @@ export function SudokuCell({ cell, showCandidates }: Props) {
       }}
     >
       {cell.value !== null ? (
-        <span className={`text-xl font-medium leading-none ${textColor}`}>
+        <span className={`text-xl leading-none ${textColor}`}>
           {cell.value}
         </span>
       ) : (
@@ -45,9 +46,9 @@ export function SudokuCell({ cell, showCandidates }: Props) {
 }
 
 function getCellBg(cell: CellViewModel): string {
-  if (cell.isSelected) return 'bg-blue-900/60'
-  if (cell.isPatternCell) return 'bg-emerald-900/40'
-  if (cell.isSameValue) return 'bg-slate-700/50'
-  if (cell.isPeer) return 'bg-slate-800/60'
-  return 'bg-slate-900/40'
+  if (cell.isSelected) return theme.cell.selected
+  if (cell.isPatternCell) return theme.cell.pattern
+  if (cell.isSameValue) return theme.cell.sameValue
+  if (cell.isPeer) return theme.cell.peer
+  return theme.cell.default
 }

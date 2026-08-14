@@ -118,8 +118,9 @@ export const STRATEGY_META: StrategyMeta[] = STRATEGY_PIPELINE.map(s => s.meta)
  * Run strategies in order and return the first one that finds something.
  * Returns null if no strategy can make progress.
  */
-export function findNextStrategy(snapshot: Snapshot): StratResult | null {
-  for (const { fn } of STRATEGY_PIPELINE) {
+export function findNextStrategy(snapshot: Snapshot, enabledNames?: Set<string>): StratResult | null {
+  for (const { fn, meta } of STRATEGY_PIPELINE) {
+    if (enabledNames && !enabledNames.has(meta.name)) continue
     const result = fn(snapshot)
     if (result !== null) return result
   }

@@ -12,19 +12,24 @@ export function useBoardView(): CellViewModel[] {
   const snapshot = useSolverStore(s => s.currentSnapshot())
   const given = useSolverStore(s => s.given)
   const pending = useSolverStore(s => s.pending)
+  const activeInstance = useSolverStore(s => s.activeInstance)
   const selectedCell = useUIStore(s => s.selectedCell)
 
   return useMemo(() => {
     const selectedValue =
       selectedCell !== null ? snapshot.values[selectedCell] : null
 
-    // Build annotation lookup from pending result
+    // Build annotation lookup from the active instance of the pending result
     const annotationMap = new Map<string, 'highlight' | 'eliminate'>()
     const patternCellSet = new Set<number>()
 
-    if (pending) {
-      for (const cell of pending.highlightCells) patternCellSet.add(cell)
-      for (const { cell, digit, kind } of pending.candidateAnnotations) {
+    const instance = pending
+      ? pending.instances[Math.min(activeInstance, pending.instances.length - 1)]
+      : null
+    if (instance) {
+      for (const cell of instance.patternCells) patternCellSet.add(cell)
+      for (const { cell } of instance.solvedCells) patternCellSet.add(cell)
+      for (const { cell, digit, kind } of instance.candidateAnnotations) {
         annotationMap.set(`${cell}:${digit}`, kind)
       }
     }
@@ -57,5 +62,5 @@ export function useBoardView(): CellViewModel[] {
         candidateAnnotations,
       }
     })
-  }, [snapshot, given, pending, selectedCell])
+  }, [snapshot, given, pending, activeInstance, selectedCell])
 }

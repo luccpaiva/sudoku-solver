@@ -1,6 +1,6 @@
-import type { Snapshot, StratResult, CandidateAnnotation, CellIdx } from '../types'
+import type { Snapshot, StratResult, StratInstance, CellIdx, UnitRef } from '../types'
 import { BOXES, ROWS, COLS, CELL_UNITS } from '../units'
-import { cellLabel } from '../utils'
+import { unitDisplayName } from '../utils'
 
 /**
  * Pointing Pairs/Triples:
@@ -9,6 +9,7 @@ import { cellLabel } from '../utils'
  */
 export function pointingPairs(snapshot: Snapshot): StratResult | null {
   const { values, candidates } = snapshot
+  const instances: StratInstance[] = []
 
   for (let b = 0; b < 9; b++) {
     const boxUnsolved = BOXES[b].filter(i => values[i] === null)
@@ -20,40 +21,45 @@ export function pointingPairs(snapshot: Snapshot): StratResult | null {
       const rows = new Set(digitCells.map(i => CELL_UNITS[i].row))
       const cols = new Set(digitCells.map(i => CELL_UNITS[i].col))
 
-      let line: CellIdx[] | null = null
-      let lineLabel = ''
+      let toEliminate: CellIdx[] | null = null
+      let line: UnitRef | null = null
 
       if (rows.size === 1) {
         const row = [...rows][0]
-        line = ROWS[row].filter(i => values[i] === null && !digitCells.includes(i) && candidates[i].has(digit))
-        lineLabel = `row ${row + 1}`
+        toEliminate = ROWS[row].filter(
+          i => values[i] === null && !digitCells.includes(i) && candidates[i].has(digit),
+        )
+        line = { kind: 'row', index: row }
       } else if (cols.size === 1) {
         const col = [...cols][0]
-        line = COLS[col].filter(i => values[i] === null && !digitCells.includes(i) && candidates[i].has(digit))
-        lineLabel = `col ${col + 1}`
+        toEliminate = COLS[col].filter(
+          i => values[i] === null && !digitCells.includes(i) && candidates[i].has(digit),
+        )
+        line = { kind: 'col', index: col }
       }
 
-      if (!line || line.length === 0) continue
+      if (!toEliminate || toEliminate.length === 0 || !line) continue
 
-      const annotations: CandidateAnnotation[] = [
-        ...digitCells.map(cell => ({ cell, digit, kind: 'highlight' as const })),
-        ...line.map(cell => ({ cell, digit, kind: 'eliminate' as const })),
-      ]
-
-      return {
-        name: 'Pointing Pairs',
+      const box: UnitRef = { kind: 'box', index: b }
+      instances.push({
+        patternCells: digitCells,
         solvedCells: [],
-        highlightCells: digitCells,
-        candidateAnnotations: annotations,
-        description: [
-          `Pointing Pairs: ${digit} in box ${b + 1} locked to ${lineLabel}`,
-          `Eliminates ${digit} from ${line.map(cellLabel).join(', ')}`,
+        candidateAnnotations: [
+          ...digitCells.map(cell => ({ cell, digit, kind: 'highlight' as const })),
+          ...toEliminate.map(cell => ({ cell, digit, kind: 'eliminate' as const })),
         ],
-      }
+        units: [box, line],
+        label: `${digit} in ${unitDisplayName(box)} locked to ${unitDisplayName(line)}`,
+        narrative:
+          `Inside ${unitDisplayName(box)}, the digit ${digit} fits only in ${unitDisplayName(line)}. ` +
+          `One of those cells must be the ${digit}, so it can't appear anywhere else ` +
+          `in ${unitDisplayName(line)} — the crossed-out candidates are removed.`,
+      })
     }
   }
 
-  return null
+  if (instances.length === 0) return null
+  return { name: 'Pointing Pairs', instances }
 }
 
 /**
@@ -63,6 +69,7 @@ export function pointingPairs(snapshot: Snapshot): StratResult | null {
  */
 export function boxReduction(snapshot: Snapshot): StratResult | null {
   const { values, candidates } = snapshot
+  const instances: StratInstance[] = []
 
   for (const lines of [ROWS, COLS] as const) {
     const isRow = lines === ROWS
@@ -77,33 +84,33 @@ export function boxReduction(snapshot: Snapshot): StratResult | null {
         const boxes = new Set(digitCells.map(i => CELL_UNITS[i].box))
         if (boxes.size !== 1) continue
 
-        const box = [...boxes][0]
-        const toEliminate = BOXES[box].filter(
+        const boxIdx = [...boxes][0]
+        const toEliminate = BOXES[boxIdx].filter(
           i => values[i] === null && !digitCells.includes(i) && candidates[i].has(digit),
         )
-
         if (toEliminate.length === 0) continue
 
-        const annotations: CandidateAnnotation[] = [
-          ...digitCells.map(cell => ({ cell, digit, kind: 'highlight' as const })),
-          ...toEliminate.map(cell => ({ cell, digit, kind: 'eliminate' as const })),
-        ]
+        const line: UnitRef = { kind: isRow ? 'row' : 'col', index: lineIdx }
+        const box: UnitRef = { kind: 'box', index: boxIdx }
 
-        const lineLabel = isRow ? `row ${lineIdx + 1}` : `col ${lineIdx + 1}`
-
-        return {
-          name: 'Box-Reduction',
+        instances.push({
+          patternCells: digitCells,
           solvedCells: [],
-          highlightCells: digitCells,
-          candidateAnnotations: annotations,
-          description: [
-            `Box-Reduction: ${digit} in ${lineLabel} locked to box ${box + 1}`,
-            `Eliminates ${digit} from ${toEliminate.map(cellLabel).join(', ')}`,
+          candidateAnnotations: [
+            ...digitCells.map(cell => ({ cell, digit, kind: 'highlight' as const })),
+            ...toEliminate.map(cell => ({ cell, digit, kind: 'eliminate' as const })),
           ],
-        }
+          units: [line, box],
+          label: `${digit} in ${unitDisplayName(line)} locked to ${unitDisplayName(box)}`,
+          narrative:
+            `In ${unitDisplayName(line)}, the digit ${digit} fits only inside ${unitDisplayName(box)}. ` +
+            `That pins the box's ${digit} to those cells, so it can be removed from ` +
+            `the rest of ${unitDisplayName(box)}.`,
+        })
       }
     }
   }
 
-  return null
+  if (instances.length === 0) return null
+  return { name: 'Box-Reduction', instances }
 }

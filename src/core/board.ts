@@ -53,19 +53,21 @@ export function applyStratResult(snapshot: Snapshot, result: StratResult): Snaps
   const values = [...snapshot.values] as Array<number | null>
   const candidates = snapshot.candidates.map(s => new Set(s))
 
-  // 1. Candidate eliminations
-  for (const ann of result.candidateAnnotations) {
-    if (ann.kind === 'eliminate') {
-      candidates[ann.cell].delete(ann.digit)
+  for (const instance of result.instances) {
+    // 1. Candidate eliminations
+    for (const ann of instance.candidateAnnotations) {
+      if (ann.kind === 'eliminate') {
+        candidates[ann.cell].delete(ann.digit)
+      }
     }
-  }
 
-  // 2 & 3. Solved cells
-  for (const { cell, digit } of result.solvedCells) {
-    values[cell] = digit
-    candidates[cell].clear()
-    for (const peer of PEERS[cell]) {
-      candidates[peer].delete(digit)
+    // 2 & 3. Solved cells
+    for (const { cell, digit } of instance.solvedCells) {
+      values[cell] = digit
+      candidates[cell].clear()
+      for (const peer of PEERS[cell]) {
+        candidates[peer].delete(digit)
+      }
     }
   }
 
@@ -83,10 +85,14 @@ export function applyManualEntry(
 ): Snapshot {
   const syntheticResult: StratResult = {
     name: 'Manual Entry',
-    solvedCells: [{ cell, digit }],
-    highlightCells: [],
-    candidateAnnotations: [],
-    description: [],
+    instances: [{
+      patternCells: [],
+      solvedCells: [{ cell, digit }],
+      candidateAnnotations: [],
+      units: [],
+      label: '',
+      narrative: '',
+    }],
   }
   return applyStratResult(snapshot, syntheticResult)
 }
@@ -98,7 +104,7 @@ export function applyManualEntry(
  */
 export function clearManualCell(
   snapshot: Snapshot,
-  given: ReadonlyArray<number | null>,
+  _given: ReadonlyArray<number | null>,
   cell: CellIdx,
 ): Snapshot {
   const values = [...snapshot.values] as Array<number | null>

@@ -1,53 +1,46 @@
-import type { Snapshot, StratResult, CellIdx } from '../types'
-import { ALL_UNITS, CELL_UNITS } from '../units'
-import { cellLabel } from '../utils'
+import type { Snapshot, StratResult, StratInstance, UnitKind, UnitRef, CellIdx } from '../types'
+import { ROWS, COLS, BOXES } from '../units'
+import { cellLabel, unitDisplayName } from '../utils'
+
+const UNIT_GROUPS: Array<[UnitKind, ReadonlyArray<ReadonlyArray<CellIdx>>]> = [
+  ['row', ROWS],
+  ['col', COLS],
+  ['box', BOXES],
+]
 
 export function hiddenSingles(snapshot: Snapshot): StratResult | null {
   const { values, candidates } = snapshot
 
-  // (cell, digit) pairs found; deduplicate since a cell may be a hidden single in multiple units
-  const found = new Map<string, { cell: CellIdx; digit: number; unitLabel: string }>()
+  // Deduplicate since a cell may be a hidden single in multiple units
+  const found = new Map<string, StratInstance>()
 
-  for (const unit of ALL_UNITS) {
-    const unsolved = unit.filter(i => values[i] === null)
+  for (const [kind, group] of UNIT_GROUPS) {
+    for (let index = 0; index < 9; index++) {
+      const unsolved = group[index].filter(i => values[i] === null)
 
-    for (let digit = 1; digit <= 9; digit++) {
-      const cells = unsolved.filter(i => candidates[i].has(digit))
+      for (let digit = 1; digit <= 9; digit++) {
+        const cells = unsolved.filter(i => candidates[i].has(digit))
+        if (cells.length !== 1) continue
 
-      if (cells.length !== 1) continue
+        const cell = cells[0]
+        const key = `${cell}:${digit}`
+        if (found.has(key)) continue
 
-      const cell = cells[0]
-      const key = `${cell}:${digit}`
-
-      if (!found.has(key)) {
-        found.set(key, { cell, digit, unitLabel: unitName(unit, cell) })
+        const unit: UnitRef = { kind, index }
+        found.set(key, {
+          patternCells: [cell],
+          solvedCells: [{ cell, digit }],
+          candidateAnnotations: [{ cell, digit, kind: 'highlight' }],
+          units: [unit],
+          label: `${cellLabel(cell)} = ${digit} (unique in ${unitDisplayName(unit)})`,
+          narrative:
+            `In ${unitDisplayName(unit)}, only ${cellLabel(cell)} can take a ${digit} — ` +
+            `every other cell there already rules it out. So ${cellLabel(cell)} must be ${digit}.`,
+        })
       }
     }
   }
 
   if (found.size === 0) return null
-
-  const entries = [...found.values()]
-
-  return {
-    name: 'Hidden Singles',
-    solvedCells: entries.map(({ cell, digit }) => ({ cell, digit })),
-    highlightCells: [],
-    candidateAnnotations: entries.map(({ cell, digit }) => ({
-      cell,
-      digit,
-      kind: 'highlight',
-    })),
-    description: entries.map(
-      ({ cell, digit, unitLabel }) =>
-        `${cellLabel(cell)} = ${digit} (unique in ${unitLabel})`,
-    ),
-  }
-}
-
-function unitName(unit: ReadonlyArray<CellIdx>, exampleCell: CellIdx): string {
-  const { row, col, box } = CELL_UNITS[exampleCell]
-  if (unit.every(i => CELL_UNITS[i].row === row)) return `row ${row + 1}`
-  if (unit.every(i => CELL_UNITS[i].col === col)) return `col ${col + 1}`
-  return `box ${box + 1}`
+  return { name: 'Hidden Singles', instances: [...found.values()] }
 }

@@ -35,20 +35,40 @@ export type SolvedCell = {
   digit: number
 }
 
+export type UnitKind = 'row' | 'col' | 'box'
+
+/** Reference to one of the 27 units, e.g. { kind: 'row', index: 0 } = row A. */
+export type UnitRef = {
+  kind: UnitKind
+  index: number
+}
+
 /**
- * Everything a strategy returns: what to highlight, what to eliminate,
- * what to set, and a human-readable explanation.
+ * One occurrence of a pattern. The UI displays exactly one instance at a
+ * time (with a stepper when a result holds several).
+ */
+export type StratInstance = {
+  /** Cells forming the pattern — get background emphasis + ring. */
+  patternCells: CellIdx[]
+  /** Cells that get a value set when this result is applied. */
+  solvedCells: SolvedCell[]
+  /** Per-candidate annotations (highlight = green, eliminate = red slash). */
+  candidateAnnotations: CandidateAnnotation[]
+  /** Units the logic operates in — tinted on the board; everything else dims. */
+  units: UnitRef[]
+  /** Compact expert notation, e.g. "A2/A3 locks 1/6". */
+  label: string
+  /** Plain-language explanation for someone new to sudoku. */
+  narrative: string
+}
+
+/**
+ * Everything a strategy returns: one entry per found occurrence.
+ * Applying the result applies every instance at once.
  */
 export type StratResult = {
   name: string
-  /** Cells that get a value set when this result is applied. */
-  solvedCells: SolvedCell[]
-  /** Cells whose background should be highlighted (pattern cells). */
-  highlightCells: CellIdx[]
-  /** Per-candidate annotations (highlight = green, eliminate = yellow). */
-  candidateAnnotations: CandidateAnnotation[]
-  /** One description line per found instance of the pattern. */
-  description: string[]
+  instances: StratInstance[]
 }
 
 // ── UI view model ─────────────────────────────────────────────────────────────

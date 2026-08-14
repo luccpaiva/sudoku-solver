@@ -17,6 +17,8 @@ export interface SolverState {
    * The UI shows highlights; the user then chooses to apply or step back.
    */
   pending: StratResult | null
+  /** Which instance of `pending` the board/explainer currently show. */
+  activeInstance: number
 
   // ── Derived helpers (read current state without hooks) ───────────────────
   currentSnapshot: () => Snapshot
@@ -26,7 +28,8 @@ export interface SolverState {
 
   // ── Actions ──────────────────────────────────────────────────────────────
   loadPuzzleFromString: (input: string) => void
-  findNext: () => void
+  findNext: (enabledNames?: Set<string>) => void
+  setActiveInstance: (index: number) => void
   applyPending: () => void
   /**
    * Undo:
@@ -51,6 +54,7 @@ export const useSolverStore = create<SolverState>((set, get) => ({
   history: [EMPTY_SNAPSHOT],
   cursor: 0,
   pending: null,
+  activeInstance: 0,
 
   currentSnapshot: () => get().history[get().cursor],
   canUndo: () => get().pending !== null || get().cursor > 0,
@@ -67,10 +71,17 @@ export const useSolverStore = create<SolverState>((set, get) => ({
     })
   },
 
-  findNext: () => {
+  findNext: (enabledNames) => {
     const snapshot = get().currentSnapshot()
-    const result = findNextStrategy(snapshot)
-    set({ pending: result })
+    const result = findNextStrategy(snapshot, enabledNames)
+    set({ pending: result, activeInstance: 0 })
+  },
+
+  setActiveInstance: (index) => {
+    const { pending } = get()
+    if (!pending) return
+    const max = pending.instances.length - 1
+    set({ activeInstance: Math.max(0, Math.min(index, max)) })
   },
 
   applyPending: () => {

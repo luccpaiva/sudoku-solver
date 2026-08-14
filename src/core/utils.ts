@@ -1,13 +1,27 @@
-import type { CellIdx, CandidateAnnotation } from './types'
+import type { CellIdx, CandidateAnnotation, UnitRef } from './types'
 
 // ── Cell labelling ────────────────────────────────────────────────────────────
 
 /** Row labels A-J, skipping I to avoid confusion with 1. */
-const ROW_LABELS = 'ABCDEFGHJ'
+export const ROW_LABELS = 'ABCDEFGHJ'
 
 /** Human-readable cell label, e.g. index 0 → "A1", index 80 → "J9". */
 export function cellLabel(idx: CellIdx): string {
   return `${ROW_LABELS[(idx / 9) | 0]}${(idx % 9) + 1}`
+}
+
+/** Board-matching unit name: "row A", "column 5", "box 3". */
+export function unitDisplayName(ref: UnitRef): string {
+  if (ref.kind === 'row') return `row ${ROW_LABELS[ref.index]}`
+  if (ref.kind === 'col') return `column ${ref.index + 1}`
+  return `box ${ref.index + 1}`
+}
+
+/** Prose list: [1,6] → "1 and 6"; [1,4,6] → "1, 4 and 6". */
+export function proseList(items: ReadonlyArray<string | number>, conj = 'and'): string {
+  const strs = items.map(String)
+  if (strs.length <= 1) return strs.join('')
+  return `${strs.slice(0, -1).join(', ')} ${conj} ${strs[strs.length - 1]}`
 }
 
 // ── Puzzle parsing ────────────────────────────────────────────────────────────

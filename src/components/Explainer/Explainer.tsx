@@ -1,48 +1,76 @@
 import { useSolverStore } from '@/store/solverStore'
 import { STRATEGY_META } from '@/core/solver'
+import { theme } from '@/theme'
 
 export function Explainer() {
   const pending = useSolverStore(s => s.pending)
+  const activeInstance = useSolverStore(s => s.activeInstance)
+  const setActiveInstance = useSolverStore(s => s.setActiveInstance)
 
   if (!pending) {
     return (
-      <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-4 text-sm text-slate-500">
-        Press <kbd className="rounded bg-slate-700 px-1 py-0.5 font-mono text-xs">Space</kbd> or{' '}
-        <span className="font-semibold">Find Next</span> to discover a strategy.
+      <div className={theme.explainer.empty}>
+        Press <kbd className={theme.explainer.kbd}>Space</kbd> or{' '}
+        <span className="font-semibold">Find next</span> to discover a strategy.
       </div>
     )
   }
 
   const meta = STRATEGY_META.find(m => m.name === pending.name)
+  const count = pending.instances.length
+  const idx = Math.min(activeInstance, count - 1)
+  const instance = pending.instances[idx]
 
   return (
-    <div className="rounded-lg border border-emerald-800 bg-slate-800/60 p-4 text-sm space-y-3">
-      <div>
-        <p className="font-bold text-emerald-300 text-base">{pending.name}</p>
-        {meta && <p className="text-slate-400 mt-0.5">{meta.summary}</p>}
+    <div className={theme.explainer.container}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className={theme.explainer.name}>{pending.name}</p>
+          {meta && <p className={theme.explainer.summary}>{meta.summary}</p>}
+        </div>
+
+        {count > 1 && (
+          <div className={theme.explainer.stepper} aria-label="Occurrence selector">
+            <button
+              type="button"
+              className={theme.explainer.stepperButton}
+              onClick={() => setActiveInstance(idx - 1)}
+              disabled={idx === 0}
+              aria-label="Previous occurrence"
+            >
+              ‹
+            </button>
+            <span className={theme.explainer.stepperCount}>
+              {idx + 1} / {count}
+            </span>
+            <button
+              type="button"
+              className={theme.explainer.stepperButton}
+              onClick={() => setActiveInstance(idx + 1)}
+              disabled={idx === count - 1}
+              aria-label="Next occurrence"
+            >
+              ›
+            </button>
+          </div>
+        )}
       </div>
 
-      <ul className="space-y-1">
-        {pending.description.map((line, i) => (
-          <li key={i} className="text-slate-200 leading-snug font-mono text-xs">
-            {line}
-          </li>
-        ))}
-      </ul>
+      <p className={theme.explainer.narrative}>{instance.narrative}</p>
+      <p className={theme.explainer.label}>{instance.label}</p>
 
-      <div className="flex gap-2 text-xs text-slate-500">
-        <LegendDot color="bg-emerald-400" label="Pattern" />
-        <LegendDot color="bg-amber-400" label="Eliminated" />
+      <div className={theme.explainer.legend}>
+        <span className="flex items-center gap-1">
+          <span className={`w-2 h-2 rounded-full ${theme.explainer.legendHighlight}`} />
+          Pattern
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="relative inline-flex w-3 h-3 items-center justify-center">
+            <span className={`absolute w-3 h-px -rotate-45 ${theme.explainer.legendEliminate}`} />
+          </span>
+          Removed
+        </span>
       </div>
     </div>
-  )
-}
-
-function LegendDot({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="flex items-center gap-1">
-      <span className={`w-2 h-2 rounded-full ${color}`} />
-      {label}
-    </span>
   )
 }

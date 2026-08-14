@@ -2,29 +2,26 @@ import type { Config } from 'tailwindcss'
 
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
+      // Semantic palette — actual values live as CSS variables in index.css,
+      // swapped by the `dark` class (Puzzle Page by day, Instrument by night).
       colors: {
-        board: {
-          bg: '#1a1a2e',
-          cell: '#16213e',
-          cellHover: '#0f3460',
-          selected: '#0f3460',
-          peer: '#1a2a4a',
-          highlight: '#1a3a2a',
-          given: '#e2e8f0',
-          solved: '#60a5fa',
-          error: '#f87171',
-        },
-        candidate: {
-          normal: '#6b7280',
-          highlight: '#34d399',
-          eliminate: '#fbbf24',
-        },
-        panel: {
-          bg: '#0f172a',
-          border: '#1e293b',
-        },
+        paper: 'rgb(var(--c-paper) / <alpha-value>)',
+        surface: 'rgb(var(--c-surface) / <alpha-value>)',
+        ink: 'rgb(var(--c-ink) / <alpha-value>)',
+        soft: 'rgb(var(--c-soft) / <alpha-value>)',
+        line: 'rgb(var(--c-line) / <alpha-value>)',
+        wash: 'rgb(var(--c-wash) / <alpha-value>)',
+        pat: 'rgb(var(--c-pat) / <alpha-value>)',
+        accent: 'rgb(var(--c-accent) / <alpha-value>)',
+        removal: 'rgb(var(--c-removal) / <alpha-value>)',
+        entry: 'rgb(var(--c-entry) / <alpha-value>)',
+      },
+      fontFamily: {
+        display: ['var(--font-display)'],
+        cand: ['var(--font-cand)'],
       },
     },
   },

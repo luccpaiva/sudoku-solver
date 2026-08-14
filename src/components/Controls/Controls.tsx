@@ -2,6 +2,7 @@ import { useSolverStore } from '@/store/solverStore'
 import { useUIStore } from '@/store/uiStore'
 import { useSolverStep } from '@/hooks/useSolverActions'
 import { useEffect } from 'react'
+import { theme } from '@/theme'
 
 export function Controls() {
   const pending = useSolverStore(s => s.pending)
@@ -14,7 +15,6 @@ export function Controls() {
   const toggleCandidates = useUIStore(s => s.toggleCandidates)
   const step = useSolverStep()
 
-  // Space = step (find / apply)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.code === 'Space' && e.target === document.body) {
@@ -27,56 +27,54 @@ export function Controls() {
   }, [step])
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="grid grid-cols-2 gap-2">
-        <Btn
-          onClick={step}
-          variant={pending ? 'primary' : 'default'}
-          title="Space"
-        >
-          {pending ? 'Apply' : 'Find Next'}
-        </Btn>
-        <Btn onClick={undo} disabled={!canUndo} variant="ghost">
-          Undo
-        </Btn>
-        <Btn onClick={redo} disabled={!canRedo} variant="ghost">
-          Redo
-        </Btn>
-        <Btn onClick={reset} variant="ghost">
-          Reset
-        </Btn>
+    <div className="flex flex-col gap-3">
+      {/* One big verb — everything else stays quiet */}
+      <button
+        onClick={step}
+        className={`${theme.button.base} ${theme.button.primary} w-full py-2.5 flex items-center justify-center gap-3`}
+      >
+        <span>{pending ? 'Apply' : 'Find next'}</span>
+        <span className="text-[9px] tracking-[0.2em] uppercase opacity-50">space</span>
+      </button>
+
+      <div className={`flex divide-x divide-line/60 border ${theme.app.border} rounded-[var(--radius)] overflow-hidden`}>
+        <QuietBtn onClick={undo} disabled={!canUndo}>Undo</QuietBtn>
+        <QuietBtn onClick={redo} disabled={!canRedo}>Redo</QuietBtn>
+        <QuietBtn onClick={reset}>Reset</QuietBtn>
       </div>
 
-      <Btn onClick={toggleCandidates} variant="ghost">
-        {showCandidates ? 'Hide Candidates' : 'Show Candidates'}
-      </Btn>
+      <label className="flex items-center justify-between cursor-pointer select-none py-0.5">
+        <span className="text-xs text-soft">Candidates</span>
+        <input
+          type="checkbox"
+          checked={showCandidates}
+          onChange={toggleCandidates}
+          className="sr-only peer"
+        />
+        <span
+          aria-hidden
+          className="relative h-4 w-8 rounded-full bg-line/80 transition-colors peer-checked:bg-ink
+                     after:absolute after:top-0.5 after:left-0.5 after:h-3 after:w-3 after:rounded-full
+                     after:bg-surface after:transition-transform peer-checked:after:translate-x-4
+                     peer-focus-visible:ring-1 peer-focus-visible:ring-accent"
+        />
+      </label>
     </div>
   )
 }
 
-type BtnProps = {
+function QuietBtn({ children, onClick, disabled = false }: {
   children: React.ReactNode
   onClick: () => void
   disabled?: boolean
-  variant?: 'default' | 'primary' | 'ghost'
-  title?: string
-}
-
-function Btn({ children, onClick, disabled = false, variant = 'default', title }: BtnProps) {
-  const base =
-    'px-3 py-2 rounded text-sm font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40 disabled:cursor-not-allowed'
-  const variants = {
-    default: 'bg-slate-700 hover:bg-slate-600 text-slate-100',
-    primary: 'bg-emerald-700 hover:bg-emerald-600 text-white',
-    ghost: 'bg-transparent hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700',
-  }
-
+}) {
   return (
     <button
-      className={`${base} ${variants[variant]}`}
       onClick={onClick}
       disabled={disabled}
-      title={title}
+      className="flex-1 py-1.5 text-xs text-soft hover:text-ink hover:bg-wash/50 transition-colors
+                 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent
+                 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
     >
       {children}
     </button>

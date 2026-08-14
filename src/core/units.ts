@@ -1,4 +1,4 @@
-import type { CellIdx } from './types'
+import type { CellIdx, UnitRef } from './types'
 
 /** All 9 cell indices in each row (ROWS[r] = cells in row r). */
 export const ROWS: ReadonlyArray<ReadonlyArray<CellIdx>> = Array.from(
@@ -31,6 +31,13 @@ export const ALL_UNITS: ReadonlyArray<ReadonlyArray<CellIdx>> = [
   ...COLS,
   ...BOXES,
 ]
+
+/** The 9 cell indices of the unit a UnitRef points at. */
+export function unitCells(ref: UnitRef): ReadonlyArray<CellIdx> {
+  if (ref.kind === 'row') return ROWS[ref.index]
+  if (ref.kind === 'col') return COLS[ref.index]
+  return BOXES[ref.index]
+}
 
 /**
  * For each cell, its {row, col, box} unit indices.
