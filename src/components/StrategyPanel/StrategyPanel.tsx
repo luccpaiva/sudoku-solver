@@ -1,87 +1,71 @@
+import { useMemo } from 'react'
 import { STRATEGY_META } from '@/core/solver'
 import { useSolverStore } from '@/store/solverStore'
 import { useUIStore } from '@/store/uiStore'
-import { theme } from '@/theme'
+import { CheckIcon } from '@/components/icons'
 
+const SECTIONS = [
+  { title: 'Basic', strategies: STRATEGY_META.filter(m => m.category === 'basic') },
+  { title: 'Tough', strategies: STRATEGY_META.filter(m => m.category === 'tough') },
+]
+
+const stepsLabel = (count = 0) => (count === 0 ? '' : `${count} ${count === 1 ? 'step' : 'steps'}`)
+
+/**
+ * The strategies in the order the solver tries them. Each can be switched
+ * off, and shows how many steps of the solve so far it has made.
+ */
 export function StrategyPanel() {
   const pending = useSolverStore(s => s.pending)
-  const pendingName = pending?.name ?? null
-  const pendingCount = pending?.instances.length ?? 0
+  const steps = useSolverStore(s => s.steps)
+  const cursor = useSolverStore(s => s.cursor)
+  const clearSearch = useSolverStore(s => s.clearSearch)
   const enabledStrategies = useUIStore(s => s.enabledStrategies)
   const toggleStrategy = useUIStore(s => s.toggleStrategy)
 
-  const basic = STRATEGY_META.filter(m => m.category === 'basic')
-  const tough = STRATEGY_META.filter(m => m.category === 'tough')
+  const used = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const step of steps.slice(0, cursor)) counts.set(step.name, (counts.get(step.name) ?? 0) + 1)
+    return counts
+  }, [steps, cursor])
 
   return (
-    <div className="flex flex-col gap-6 text-sm">
-      <Section title="Basic" strategies={basic} pendingName={pendingName} pendingCount={pendingCount} enabled={enabledStrategies} toggle={toggleStrategy} />
-      <Section title="Tough" strategies={tough} pendingName={pendingName} pendingCount={pendingCount} enabled={enabledStrategies} toggle={toggleStrategy} />
-    </div>
-  )
-}
+    <section className="sd-group" id="strategies">
+      <header>
+        <h2>Strategies</h2>
+        <span className="sd-note">{enabledStrategies.size} of {STRATEGY_META.length} on</span>
+      </header>
+      <p className="sd-hint">Tried from the top. The first that applies is the next step.</p>
 
-type SectionProps = {
-  title: string
-  strategies: typeof STRATEGY_META
-  pendingName: string | null
-  pendingCount: number
-  enabled: Set<string>
-  toggle: (name: string) => void
-}
-
-function Section({ title, strategies, pendingName, pendingCount, enabled, toggle }: SectionProps) {
-  return (
-    <div>
-      <p className={`${theme.strategy.sectionLabel} mb-2.5`}>
-        {title}
-      </p>
-      <ul>
-        {strategies.map(meta => {
-          const isActive = meta.name === pendingName
-          const isEnabled = enabled.has(meta.name)
-          return (
-            <li key={meta.name}>
+      {SECTIONS.map(section => (
+        <div key={section.title} className="sd-ladder">
+          <h3>{section.title}</h3>
+          {section.strategies.map(meta => {
+            const isOn = enabledStrategies.has(meta.name)
+            const isFound = meta.name === pending?.name
+            return (
               <button
+                key={meta.name}
+                type="button"
                 role="switch"
-                aria-checked={isEnabled}
+                aria-checked={isOn}
+                data-strategy={meta.name}
                 title={meta.summary}
-                onClick={() => toggle(meta.name)}
-                className="group flex w-full items-center gap-2.5 px-1 py-[5px] text-left cursor-pointer
-                           focus:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded-[var(--radius)]"
+                className={`ui-check${isOn ? ' is-on' : ''}${isFound ? ' is-found' : ''}`}
+                onClick={() => {
+                  // what was found depends on what was switched on
+                  clearSearch()
+                  toggleStrategy(meta.name)
+                }}
               >
-                {/* Go stone — filled when the strategy is in play */}
-                <span
-                  aria-hidden
-                  className={`h-2.5 w-2.5 shrink-0 rounded-full border transition-colors ${
-                    isActive
-                      ? theme.strategy.stoneActive
-                      : isEnabled
-                        ? theme.strategy.stoneOn
-                        : theme.strategy.stoneOff
-                  }`}
-                />
-                <span
-                  className={`flex-1 text-xs transition-colors ${
-                    isActive
-                      ? theme.strategy.itemActive
-                      : isEnabled
-                        ? theme.strategy.itemEnabled
-                        : theme.strategy.itemDisabled
-                  }`}
-                >
-                  {meta.name}
-                </span>
-                {isActive && (
-                  <span className={theme.strategy.badge}>
-                    {pendingCount > 1 ? `found ×${pendingCount}` : 'found'}
-                  </span>
-                )}
+                <i><CheckIcon /></i>
+                <span>{meta.name}</span>
+                <output>{isFound ? `found ${pending.instances.length}` : stepsLabel(used.get(meta.name))}</output>
               </button>
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+            )
+          })}
+        </div>
+      ))}
+    </section>
   )
 }

@@ -17,6 +17,29 @@ export function unitDisplayName(ref: UnitRef): string {
   return `box ${ref.index + 1}`
 }
 
+const UNIT_WORDS: Record<UnitRef['kind'], [string, string]> = {
+  row: ['row', 'rows'],
+  col: ['column', 'columns'],
+  box: ['box', 'boxes'],
+}
+
+/**
+ * Several units as one phrase, grouped by kind:
+ * "row A", "rows B and F, columns 3 and 7".
+ */
+export function unitsDisplayName(refs: ReadonlyArray<UnitRef>): string {
+  return (['row', 'col', 'box'] as const)
+    .map(kind => {
+      const names = refs
+        .filter(ref => ref.kind === kind)
+        .map(ref => (kind === 'row' ? ROW_LABELS[ref.index] : String(ref.index + 1)))
+      if (names.length === 0) return ''
+      return `${UNIT_WORDS[kind][names.length === 1 ? 0 : 1]} ${proseList(names)}`
+    })
+    .filter(Boolean)
+    .join(', ')
+}
+
 /** Prose list: [1,6] → "1 and 6"; [1,4,6] → "1, 4 and 6". */
 export function proseList(items: ReadonlyArray<string | number>, conj = 'and'): string {
   const strs = items.map(String)

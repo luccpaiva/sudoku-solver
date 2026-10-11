@@ -2,7 +2,15 @@ import { useMemo } from 'react'
 import { useSolverStore } from '@/store/solverStore'
 import { useUIStore } from '@/store/uiStore'
 import { PEERS } from '@/core/units'
-import type { CellViewModel } from '@/core/types'
+import type { CellViewModel, StratInstance } from '@/core/types'
+
+/** The occurrence of the found step that the board and the explainer show. */
+export function useActiveInstance(): StratInstance | null {
+  const pending = useSolverStore(s => s.pending)
+  const activeInstance = useSolverStore(s => s.activeInstance)
+  if (!pending) return null
+  return pending.instances[Math.min(activeInstance, pending.instances.length - 1)] ?? null
+}
 
 /**
  * Derive CellViewModel for every cell from the current store state.
@@ -11,9 +19,9 @@ import type { CellViewModel } from '@/core/types'
 export function useBoardView(): CellViewModel[] {
   const snapshot = useSolverStore(s => s.currentSnapshot())
   const given = useSolverStore(s => s.given)
-  const pending = useSolverStore(s => s.pending)
-  const activeInstance = useSolverStore(s => s.activeInstance)
+  const instance = useActiveInstance()
   const selectedCell = useUIStore(s => s.selectedCell)
+  const focusDigit = useUIStore(s => s.focusDigit)
 
   return useMemo(() => {
     const selectedValue =
@@ -23,9 +31,6 @@ export function useBoardView(): CellViewModel[] {
     const annotationMap = new Map<string, 'highlight' | 'eliminate'>()
     const patternCellSet = new Set<number>()
 
-    const instance = pending
-      ? pending.instances[Math.min(activeInstance, pending.instances.length - 1)]
-      : null
     if (instance) {
       for (const cell of instance.patternCells) patternCellSet.add(cell)
       for (const { cell } of instance.solvedCells) patternCellSet.add(cell)
@@ -58,9 +63,12 @@ export function useBoardView(): CellViewModel[] {
         isPeer,
         isSameValue,
         isPatternCell: patternCellSet.has(idx),
+        hasFocusDigit:
+          focusDigit !== null &&
+          (snapshot.values[idx] === focusDigit || snapshot.candidates[idx].has(focusDigit)),
         candidates: snapshot.candidates[idx],
         candidateAnnotations,
       }
     })
-  }, [snapshot, given, pending, activeInstance, selectedCell])
+  }, [snapshot, given, instance, selectedCell, focusDigit])
 }

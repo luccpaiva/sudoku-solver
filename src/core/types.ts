@@ -71,6 +71,21 @@ export type StratResult = {
   instances: StratInstance[]
 }
 
+/**
+ * What one applied step did. Kept next to the history so the solve can be
+ * read back as a list.
+ */
+export type StepRecord = {
+  /** Strategy name, or how the user changed the board by hand. */
+  name: string
+  /** How many occurrences of the pattern were applied together. */
+  occurrences: number
+  /** Digits written into cells. */
+  placed: number
+  /** Candidates removed by the pattern itself (not by a placed digit's peers). */
+  removed: number
+}
+
 // ── UI view model ─────────────────────────────────────────────────────────────
 
 /**
@@ -88,6 +103,8 @@ export type CellViewModel = {
   isSameValue: boolean
   /** Cell is part of the current strategy's pattern */
   isPatternCell: boolean
+  /** Cell holds, or can still take, the digit picked in the digit strip */
+  hasFocusDigit: boolean
   candidates: ReadonlySet<number>
   /** Per-candidate decoration (highlight or eliminate) */
   candidateAnnotations: ReadonlyMap<number, 'highlight' | 'eliminate'>

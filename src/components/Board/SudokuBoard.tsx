@@ -1,75 +1,45 @@
-import { useBoardView } from '@/hooks/useBoardView'
+import { useBoardView, useActiveInstance } from '@/hooks/useBoardView'
 import { useUIStore } from '@/store/uiStore'
 import { SudokuCell } from './SudokuCell'
 import { BoardOverlay } from './BoardOverlay'
-import { CELL_UNITS } from '@/core/units'
-import { theme } from '@/theme'
+import { DigitStrip } from './DigitStrip'
+import { ROW_LABELS } from '@/core/utils'
 
-const BOARD_SIZE = 'min(540px, 90vw)'
-const CELL_SIZE = `calc(${BOARD_SIZE} / 9)`
-
-const COL_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
-const ROW_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J']
+const COL_LABELS = '123456789'
 
 export function SudokuBoard() {
   const cells = useBoardView()
+  const instance = useActiveInstance()
   const showCandidates = useUIStore(s => s.showCandidates)
+  const focusDigit = useUIStore(s => s.focusDigit)
+
+  // The lines the found step works in get their labels picked out
+  const inScope = (kind: 'row' | 'col', index: number) =>
+    instance?.units.some(unit => unit.kind === kind && unit.index === index) ?? false
 
   return (
-    <div className="flex flex-col">
-      {/* Column labels */}
-      <div className="flex" style={{ paddingLeft: '1.5rem' }}>
-        {COL_LABELS.map(c => (
-          <div
-            key={c}
-            style={{ width: CELL_SIZE }}
-            className={`flex items-center justify-center ${theme.label}`}
-          >
-            {c}
-          </div>
+    <div className="sd-table">
+      <div className="sd-axis cols" aria-hidden="true">
+        {[...COL_LABELS].map((label, i) => (
+          <span key={label} className={inScope('col', i) ? 'is-scope' : undefined}>{label}</span>
+        ))}
+      </div>
+      <div className="sd-axis rows" aria-hidden="true">
+        {[...ROW_LABELS].map((label, i) => (
+          <span key={label} className={inScope('row', i) ? 'is-scope' : undefined}>{label}</span>
         ))}
       </div>
 
-      <div className="flex">
-        {/* Row labels */}
-        <div className="flex flex-col" style={{ width: '1.5rem' }}>
-          {ROW_LABELS.map(r => (
-            <div
-              key={r}
-              style={{ height: CELL_SIZE }}
-              className={`flex items-center justify-center ${theme.label}`}
-            >
-              {r}
-            </div>
+      <div className={`sd-board${focusDigit !== null ? ' is-focusing' : ''}`}>
+        <BoardOverlay />
+        <div role="grid" aria-label="Sudoku board" className="sd-grid">
+          {cells.map(cell => (
+            <SudokuCell key={cell.idx} cell={cell} showCandidates={showCandidates} focusDigit={focusDigit} />
           ))}
         </div>
-
-        {/* Board */}
-        <div className="relative shrink-0" style={{ width: BOARD_SIZE, height: BOARD_SIZE }}>
-          <div
-            role="grid"
-            aria-label="Sudoku board"
-            className={`grid grid-cols-9 grid-rows-9 ${theme.board.outerBorder} w-full h-full`}
-          >
-            {cells.map(cell => {
-              const { row, col } = CELL_UNITS[cell.idx]
-              const borderRight = col % 3 === 2 && col < 8
-                ? theme.board.boxDividerRight
-                : theme.board.cellDividerRight
-              const borderBottom = row % 3 === 2 && row < 8
-                ? theme.board.boxDividerBottom
-                : theme.board.cellDividerBottom
-
-              return (
-                <div key={cell.idx} className={`${borderRight} ${borderBottom}`}>
-                  <SudokuCell cell={cell} showCandidates={showCandidates} />
-                </div>
-              )
-            })}
-          </div>
-          <BoardOverlay />
-        </div>
       </div>
+
+      <DigitStrip />
     </div>
   )
 }

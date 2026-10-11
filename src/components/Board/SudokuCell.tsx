@@ -2,53 +2,61 @@ import type { CellViewModel } from '@/core/types'
 import { CandidateGrid } from './CandidateGrid'
 import { useUIStore } from '@/store/uiStore'
 import { useCellKeyHandler } from '@/hooks/useSolverActions'
-import { theme } from '@/theme'
+import { cellLabel } from '@/core/utils'
 
 type Props = {
   cell: CellViewModel
   showCandidates: boolean
+  focusDigit: number | null
 }
 
-export function SudokuCell({ cell, showCandidates }: Props) {
+const ARROWS: Record<string, number> = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 }
+
+export function SudokuCell({ cell, showCandidates, focusDigit }: Props) {
   const selectCell = useUIStore(s => s.selectCell)
   const handleKey = useCellKeyHandler()
 
-  const bg = getCellBg(cell)
-  const textColor = cell.isGiven ? theme.value.given : theme.value.input
+  const states = [
+    cell.value !== null && (cell.isGiven ? 'is-given' : 'is-placed'),
+    cell.isSelected && 'is-selected',
+    cell.isPeer && 'is-peer',
+    cell.isSameValue && 'is-same',
+    cell.isPatternCell && 'is-pattern',
+    cell.hasFocusDigit && 'has-focus',
+  ].filter(Boolean).join(' ')
 
   return (
     <div
       role="gridcell"
       tabIndex={0}
-      aria-label={`Cell ${cell.idx}, value ${cell.value ?? 'empty'}`}
-      className={`
-        relative flex items-center justify-center
-        w-full h-full
-        cursor-pointer select-none focus:outline-none
-        ${bg}
-        transition-colors duration-75
-      `}
+      data-cell={cellLabel(cell.idx)}
+      aria-label={`${cellLabel(cell.idx)}, ${cell.value ?? 'empty'}`}
+      aria-selected={cell.isSelected}
+      className={`sd-cell ${states}`}
       onClick={() => selectCell(cell.idx)}
       onKeyDown={e => {
+        const move = ARROWS[e.key]
+        if (move !== undefined) {
+          e.preventDefault()
+          const col = cell.idx % 9
+          // the row ends are walls, not a way round to the next row
+          if ((move === -1 && col === 0) || (move === 1 && col === 8)) return
+          const next = e.currentTarget.parentElement?.children[cell.idx + move]
+          if (next instanceof HTMLElement) {
+            selectCell(cell.idx + move)
+            next.focus()
+          }
+          return
+        }
         selectCell(cell.idx)
         handleKey(cell.idx, e.key)
       }}
     >
       {cell.value !== null ? (
-        <span className={`text-xl leading-none ${textColor}`}>
-          {cell.value}
-        </span>
+        <span className="sd-value">{cell.value}</span>
       ) : (
-        <CandidateGrid cell={cell} visible={showCandidates} />
+        <CandidateGrid cell={cell} visible={showCandidates} focusDigit={focusDigit} />
       )}
     </div>
   )
-}
-
-function getCellBg(cell: CellViewModel): string {
-  if (cell.isSelected) return theme.cell.selected
-  if (cell.isPatternCell) return theme.cell.pattern
-  if (cell.isSameValue) return theme.cell.sameValue
-  if (cell.isPeer) return theme.cell.peer
-  return theme.cell.default
 }

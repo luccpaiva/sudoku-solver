@@ -5,11 +5,15 @@ import { STRATEGY_META } from '@/core/solver'
 interface UIState {
   selectedCell: CellIdx | null
   showCandidates: boolean
+  /** Digit picked in the strip under the board: the board shows where it can still go. */
+  focusDigit: number | null
   darkMode: boolean
   enabledStrategies: Set<string>
 
   selectCell: (cell: CellIdx | null) => void
   toggleCandidates: () => void
+  /** Picking the focused digit again lets go of it. */
+  toggleFocusDigit: (digit: number) => void
   toggleDark: () => void
   toggleStrategy: (name: string) => void
 }
@@ -28,11 +32,13 @@ function initialDarkMode(): boolean {
 export const useUIStore = create<UIState>(set => ({
   selectedCell: null,
   showCandidates: true,
+  focusDigit: null,
   darkMode: initialDarkMode(),
   enabledStrategies: new Set(STRATEGY_META.map(m => m.name)),
 
   selectCell: (cell) => set({ selectedCell: cell }),
   toggleCandidates: () => set(s => ({ showCandidates: !s.showCandidates })),
+  toggleFocusDigit: (digit) => set(s => ({ focusDigit: s.focusDigit === digit ? null : digit })),
   toggleDark: () => set(s => {
     const darkMode = !s.darkMode
     localStorage.setItem(THEME_KEY, darkMode ? 'dark' : 'light')

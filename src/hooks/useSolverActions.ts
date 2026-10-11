@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useSolverStore } from '@/store/solverStore'
 import { useUIStore } from '@/store/uiStore'
 
@@ -15,6 +15,28 @@ export function useSolverStep() {
       applyPending()
     }
   }, [pending, findNext, applyPending, enabledStrategies])
+}
+
+/** How long a found step stays marked on the board before a run applies it. */
+const SHOW_MS = 720
+/** The pause after applying, before a run looks for the next step. */
+const SEARCH_MS = 200
+
+/**
+ * While the store says `running`, keep stepping: find, show, apply, find…
+ * The store ends the run itself when the board is solved, when nothing
+ * applies, or when the history is moved by hand.
+ */
+export function useAutoRun() {
+  const running = useSolverStore(s => s.running)
+  const pending = useSolverStore(s => s.pending)
+  const step = useSolverStep()
+
+  useEffect(() => {
+    if (!running) return
+    const timer = setTimeout(step, pending ? SHOW_MS : SEARCH_MS)
+    return () => clearTimeout(timer)
+  }, [running, pending, step])
 }
 
 /**

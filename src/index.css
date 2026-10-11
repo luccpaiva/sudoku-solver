@@ -1,98 +1,44 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ========================================
+   Sudoku Solver: the page around the workspace
+   The app gives the workspace the whole window. Everything inside
+   .sd-shell is styled by workspace.css.
+   ======================================== */
+@import './workspace.css';
 
-@layer base {
-  /* ── Palette ─────────────────────────────────────────────────────────
-     Light: "Puzzle Page" — newsprint, printed ink, pencil candidates,
-     red pen for the solver's marks, highlighter for the active unit.
-     Dark: "Instrument" — blue-black panels, warm gold for what the
-     solver found, signal red for what gets removed.
-     Values are RGB triplets so Tailwind opacity modifiers work. */
-  :root {
-    color-scheme: light;
-    --c-paper: 248 245 236;   /* #F8F5EC newsprint */
-    --c-surface: 253 251 245; /* #FDFBF5 board/card stock */
-    --c-ink: 34 30 25;        /* #221E19 printed ink */
-    --c-soft: 138 132 120;    /* #8A8478 pencil gray */
-    --c-line: 207 200 185;    /* #CFC8B9 hairline rule */
-    --c-wash: 237 232 219;    /* #EDE8DB warm hover fill */
-    --c-pat: 34 30 25;        /* pattern marks: pencil-circled in ink */
-    --c-accent: 192 54 31;    /* #C0361F red pen — found, primary */
-    --c-removal: 192 54 31;   /* red pen strike */
-    --c-entry: 192 54 31;     /* solutions are written in pen */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
 
-    --radius: 2px;
-    --font-display: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
-    --font-cand: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+body {
+  background: var(--sd-bg);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-    /* SVG overlay (BoardOverlay) — applied via style, not classes */
-    --ov-unit-fill: rgba(243, 226, 148, 0.42);  /* highlighter */
-    --ov-unit-stroke: rgba(214, 188, 84, 0.55);
-    --ov-ring: #C0361F;
-    --ov-ring-glow: rgba(0, 0, 0, 0);
-  }
+.sd-shell {
+  height: 100%;
+}
 
-  .dark {
-    color-scheme: dark;
-    --c-paper: 12 16 27;      /* #0C101B ground */
-    --c-surface: 19 26 42;    /* #131A2A panel */
-    --c-ink: 220 227 242;     /* #DCE3F2 text */
-    --c-soft: 122 133 163;    /* #7A85A3 muted */
-    --c-line: 31 37 52;       /* #1F2534 hairline */
-    --c-wash: 24 34 56;       /* #182238 raised panel */
-    --c-pat: 227 176 75;      /* #E3B04B gold — pattern marks */
-    --c-accent: 227 176 75;   /* gold — found, primary */
-    --c-removal: 232 106 106; /* #E86A6A signal red strike */
-    --c-entry: 127 168 232;   /* #7FA8E8 entered digits */
-
-    --radius: 8px;
-    --font-display: 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
-    --font-cand: Consolas, 'Cascadia Mono', monospace;
-
-    --ov-unit-fill: rgba(227, 176, 75, 0.07);
-    --ov-unit-stroke: rgba(227, 176, 75, 0.3);
-    --ov-ring: #E3B04B;
-    --ov-ring-glow: rgba(227, 176, 75, 0.55);
-  }
-
-  * {
-    box-sizing: border-box;
+/* a narrow window scrolls the workspace as one column; the breakpoint is the
+   one workspace.css rearranges its inside at */
+@media (max-width: 880px) {
+  body {
+    overflow: auto;
   }
 
   html,
   body,
-  #root {
-    height: 100%;
-    margin: 0;
+  #root,
+  .sd-shell {
+    height: auto;
+    min-height: 100%;
   }
 
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-}
-
-@layer components {
-  /* Newsprint masthead: heavy rule with a thin companion line.
-     In dark (Instrument) it relaxes to a single hairline. */
-  .masthead {
-    border-bottom: 2px solid rgb(var(--c-ink));
-    position: relative;
-  }
-  .masthead::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -4px;
-    height: 1px;
-    background: rgb(var(--c-ink));
-  }
-  .dark .masthead {
-    border-bottom: 1px solid rgb(var(--c-line));
-  }
-  .dark .masthead::after {
-    display: none;
+  .sd-shell {
+    display: block;
+    overflow: visible;
   }
 }

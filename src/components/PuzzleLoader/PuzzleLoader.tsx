@@ -3,102 +3,113 @@ import { getSudoku } from 'sudoku-gen'
 import { useSolverStore } from '@/store/solverStore'
 import { TEST_BOARDS } from '@/data/testBoards'
 import { generatePuzzle } from '@/core/generator'
-import { theme } from '@/theme'
+import { parseInput, serializeValues } from '@/core/utils'
+import { LibraryMenu } from './LibraryMenu'
 
 type Difficulty = 'easy' | 'medium' | 'hard' | 'expert'
 
 const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard', 'expert']
 
+const generatedTitle = (difficulty: Difficulty) => `Generated, ${difficulty}`
+
 export function PuzzleLoader() {
   const [input, setInput] = useState('')
-  const [selectedBoard, setSelectedBoard] = useState(TEST_BOARDS[0].name)
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium')
+  const [copyNote, setCopyNote] = useState<string | null>(null)
+  const given = useSolverStore(s => s.given)
+  const title = useSolverStore(s => s.title)
+  const rating = useSolverStore(s => s.rating)
   const loadPuzzle = useSolverStore(s => s.loadPuzzleFromString)
 
+  const pasted = parseInput(input.trim())
+  const pasteReady = pasted.length === 81 && pasted.every(v => v === null || (v >= 1 && v <= 9))
+
   const handleManualLoad = () => {
-    const clean = input.trim()
-    if (clean.length >= 81) {
-      loadPuzzle(clean)
-      setInput('')
-    }
+    if (!pasteReady) return
+    loadPuzzle(input.trim())
+    setInput('')
   }
 
-  const handleTestLoad = () => {
-    const board = TEST_BOARDS.find(b => b.name === selectedBoard)
-    if (board) loadPuzzle(board.puzzle)
+  const handleGenerate = (difficulty: Difficulty) => {
+    const puzzle = difficulty === 'hard' || difficulty === 'expert'
+      ? generatePuzzle(difficulty)
+      : getSudoku(difficulty).puzzle.replaceAll('-', '.')
+    loadPuzzle(puzzle, generatedTitle(difficulty))
   }
 
-  const handleGenerate = () => {
-    if (difficulty === 'hard' || difficulty === 'expert') {
-      loadPuzzle(generatePuzzle(difficulty))
-    } else {
-      const { puzzle } = getSudoku(difficulty)
-      loadPuzzle(puzzle.replaceAll('-', '.'))
+  const handleCopy = async () => {
+    const link = new URL(window.location.href)
+    link.search = `?puzzle=${serializeValues(given)}`
+    try {
+      await navigator.clipboard.writeText(link.href)
+      setCopyNote('Link copied')
+    } catch {
+      // no clipboard here (an insecure page, or a frame without the permission)
+      window.history.replaceState(null, '', link)
+      setCopyNote('Link is in the address bar')
     }
+    setTimeout(() => setCopyNote(null), 2200)
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <p className={theme.loader.title}>New puzzle</p>
+    <section className="sd-group" id="puzzle">
+      <header>
+        <h2>Puzzle</h2>
+        <button type="button" className="sd-link" onClick={handleCopy}>
+          {copyNote ?? 'Copy link'}
+        </button>
+      </header>
 
-      <div className="flex flex-col gap-2.5">
-        <div className="flex" role="radiogroup" aria-label="Difficulty">
+      <div className="sd-field">
+        <span id="library-label">From the library</span>
+        <LibraryMenu
+          current={TEST_BOARDS.some(b => b.name === title) ? title : null}
+          onPick={board => loadPuzzle(board.puzzle, board.name)}
+        />
+      </div>
+
+      <div className="sd-field">
+        <span>Generate a new one</span>
+        <div className="sd-quick" id="generate">
           {DIFFICULTIES.map(d => (
             <button
               key={d}
-              role="radio"
-              aria-checked={difficulty === d}
-              onClick={() => setDifficulty(d)}
-              className={`flex-1 pb-1.5 text-xs capitalize transition-colors focus:outline-none
-                          focus-visible:ring-1 focus-visible:ring-accent ${
-                difficulty === d
-                  ? 'text-ink border-b-2 border-ink font-medium'
-                  : 'text-soft border-b border-line/70 hover:text-ink'
-              }`}
+              type="button"
+              className={`ui-toggle${title === generatedTitle(d) ? ' is-on' : ''}`}
+              onClick={() => handleGenerate(d)}
             >
-              {d}
+              {d[0].toUpperCase() + d.slice(1)}
             </button>
           ))}
         </div>
-        <button onClick={handleGenerate} className={`${theme.button.base} ${theme.button.default} w-full py-1.5 text-xs`}>
-          Generate
-        </button>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <p className={theme.loader.label}>From the library</p>
-        <div className="flex gap-2">
-          <select
-            value={selectedBoard}
-            onChange={e => setSelectedBoard(e.target.value)}
-            className={`min-w-0 flex-1 px-2 py-1.5 text-xs ${theme.formControl}`}
-          >
-            {TEST_BOARDS.map(b => (
-              <option key={b.name} value={b.name}>{b.name}</option>
-            ))}
-          </select>
-          <button onClick={handleTestLoad} className={`px-3 py-1.5 ${theme.formButton}`}>
-            Load
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <p className={theme.loader.label}>Paste a puzzle string</p>
-        <div className="flex gap-2">
+      <label className="sd-field">
+        <span>Paste 81 characters, dots for blanks</span>
+        <div className="sd-paste">
           <input
             type="text"
             value={input}
+            spellCheck={false}
+            autoComplete="off"
             onChange={e => setInput(e.target.value)}
-            placeholder="81 characters, dots for blanks"
-            className={`min-w-0 flex-1 px-2 py-1.5 text-xs ${theme.formControl}`}
             onKeyDown={e => e.key === 'Enter' && handleManualLoad()}
           />
-          <button onClick={handleManualLoad} className={`px-3 py-1.5 ${theme.formButton}`}>
+          <button type="button" className="ui-toggle" onClick={handleManualLoad} disabled={!pasteReady}>
             Load
           </button>
         </div>
+      </label>
+
+      <div className="sd-rating">
+        <div className="sd-row">
+          <span>Hardest step</span>
+          <b>{rating.hardest ?? 'none'}</b>
+        </div>
+        <div className="sd-row">
+          <span>{rating.solved ? 'Solves in' : 'Stalls after'}</span>
+          <b>{rating.steps} {rating.steps === 1 ? 'step' : 'steps'}</b>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

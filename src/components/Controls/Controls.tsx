@@ -1,13 +1,21 @@
+import { useEffect } from 'react'
 import { useSolverStore } from '@/store/solverStore'
 import { useUIStore } from '@/store/uiStore'
-import { useSolverStep } from '@/hooks/useSolverActions'
-import { useEffect } from 'react'
-import { theme } from '@/theme'
+import { useAutoRun, useSolverStep } from '@/hooks/useSolverActions'
+import { isSolved } from '@/core/board'
+import { CheckIcon, PauseIcon, PlayIcon, RedoIcon, ResetIcon, UndoIcon } from '@/components/icons'
+
+/** Where a key press belongs to the control it was typed into, not to the solver. */
+const TYPING = 'input, select, textarea, button, a'
 
 export function Controls() {
   const pending = useSolverStore(s => s.pending)
+  const running = useSolverStore(s => s.running)
+  const setRunning = useSolverStore(s => s.setRunning)
+  const solved = useSolverStore(s => isSolved(s.currentSnapshot()))
   const canUndo = useSolverStore(s => s.canUndo())
   const canRedo = useSolverStore(s => s.canRedo())
+  const canReset = useSolverStore(s => s.history.length > 1 || s.pending !== null)
   const undo = useSolverStore(s => s.undo)
   const redo = useSolverStore(s => s.redo)
   const reset = useSolverStore(s => s.reset)
@@ -15,68 +23,59 @@ export function Controls() {
   const toggleCandidates = useUIStore(s => s.toggleCandidates)
   const step = useSolverStep()
 
+  useAutoRun()
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && e.target === document.body) {
-        e.preventDefault()
-        step()
-      }
+      if (e.code !== 'Space' || (e.target as Element).closest(TYPING)) return
+      e.preventDefault()
+      setRunning(false)
+      step()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [step])
+  }, [step, setRunning])
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* One big verb — everything else stays quiet */}
+    <div className="sd-toolbar">
       <button
-        onClick={step}
-        className={`${theme.button.base} ${theme.button.primary} w-full py-2.5 flex items-center justify-center gap-3`}
+        type="button"
+        id="step"
+        className="ui-btn solid"
+        disabled={solved && !pending}
+        onClick={() => { setRunning(false); step() }}
       >
-        <span>{pending ? 'Apply' : 'Find next'}</span>
-        <span className="text-[9px] tracking-[0.2em] uppercase opacity-50">space</span>
+        {pending ? 'Apply' : 'Find next'}
+        <kbd>Space</kbd>
+      </button>
+      <button
+        type="button"
+        id="run"
+        className="ui-btn"
+        disabled={solved && !pending}
+        onClick={() => setRunning(!running)}
+      >
+        {running ? <PauseIcon small /> : <PlayIcon small />}
+        {running ? 'Pause' : 'Run'}
       </button>
 
-      <div className={`flex divide-x divide-line/60 border ${theme.app.border} rounded-[var(--radius)] overflow-hidden`}>
-        <QuietBtn onClick={undo} disabled={!canUndo}>Undo</QuietBtn>
-        <QuietBtn onClick={redo} disabled={!canRedo}>Redo</QuietBtn>
-        <QuietBtn onClick={reset}>Reset</QuietBtn>
+      <div className="ui-acts" role="group" aria-label="History">
+        <button type="button" id="undo" onClick={undo} disabled={!canUndo}><UndoIcon small /><span>Undo</span></button>
+        <button type="button" id="redo" onClick={redo} disabled={!canRedo}><RedoIcon small /><span>Redo</span></button>
+        <button type="button" id="reset" onClick={reset} disabled={!canReset}><ResetIcon small /><span>Reset</span></button>
       </div>
 
-      <label className="flex items-center justify-between cursor-pointer select-none py-0.5">
-        <span className="text-xs text-soft">Candidates</span>
-        <input
-          type="checkbox"
-          checked={showCandidates}
-          onChange={toggleCandidates}
-          className="sr-only peer"
-        />
-        <span
-          aria-hidden
-          className="relative h-4 w-8 rounded-full bg-line/80 transition-colors peer-checked:bg-ink
-                     after:absolute after:top-0.5 after:left-0.5 after:h-3 after:w-3 after:rounded-full
-                     after:bg-surface after:transition-transform peer-checked:after:translate-x-4
-                     peer-focus-visible:ring-1 peer-focus-visible:ring-accent"
-        />
-      </label>
+      <button
+        type="button"
+        id="candidates"
+        role="switch"
+        aria-checked={showCandidates}
+        className={`ui-check${showCandidates ? ' is-on' : ''}`}
+        onClick={toggleCandidates}
+      >
+        <i><CheckIcon /></i>
+        <span>Candidates</span>
+      </button>
     </div>
-  )
-}
-
-function QuietBtn({ children, onClick, disabled = false }: {
-  children: React.ReactNode
-  onClick: () => void
-  disabled?: boolean
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="flex-1 py-1.5 text-xs text-soft hover:text-ink hover:bg-wash/50 transition-colors
-                 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent
-                 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
-    >
-      {children}
-    </button>
   )
 }
