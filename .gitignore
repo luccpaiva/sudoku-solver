@@ -35,3 +35,6 @@ Thumbs.db
 # Misc
 *.log
 z_last_loaded_puzzle
+
+# Local tool settings
+.claude/
