@@ -12,9 +12,9 @@ import { useUIStore } from '@/store/uiStore'
 import { TEST_BOARDS } from '@/data/testBoards'
 
 /**
- * The workspace: what goes in on the left (the puzzle, the strategies),
- * the board in the middle, what comes out on the right (the step found,
- * progress, the path so far).
+ * The workspace: the puzzle and the path of its solve on the left, the
+ * board in the middle with the step found under it, and on the right the
+ * strategies the solver goes down to find that step.
  */
 export default function App() {
   const loadPuzzle = useSolverStore(s => s.loadPuzzleFromString)
@@ -38,22 +38,24 @@ export default function App() {
     <div className="sd-shell">
       <TopBar />
       <main className="sd-main">
-        <aside className="sd-inputs" aria-label="Puzzle and strategies">
+        <aside className="sd-side" aria-label="Puzzle and solve path">
           <PuzzleLoader />
-          <StrategyPanel />
+          <SolvePath />
+          <Progress />
         </aside>
 
         <div className="sd-work">
           <Controls />
           <div className="sd-view">
-            <SudokuBoard />
+            <div className="sd-stage">
+              <SudokuBoard />
+              <Explainer />
+            </div>
           </div>
         </div>
 
-        <aside className="sd-results" aria-label="Step and progress">
-          <Explainer />
-          <Progress />
-          <SolvePath />
+        <aside className="sd-side" aria-label="Strategies">
+          <StrategyPanel />
         </aside>
       </main>
     </div>

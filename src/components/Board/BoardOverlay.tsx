@@ -1,4 +1,4 @@
-import { useActiveInstance } from '@/hooks/useBoardView'
+import { useActiveInstance, useSpot } from '@/hooks/useBoardView'
 import type { CellIdx, UnitRef } from '@/core/types'
 import { unitCells } from '@/core/units'
 
@@ -58,26 +58,33 @@ function links(pairs: ReadonlyArray<[CellIdx, CellIdx]>): string[] {
  *   2. ties between the pattern cells: the ones the step names, or else
  *      between those in the same line
  * Rings and candidate marks are drawn by the cells themselves.
+ *
+ * With a part of the step picked out, only that part is drawn: the wash
+ * over its own units, stronger, and the ties only with the pattern.
  */
 export function BoardOverlay() {
   const instance = useActiveInstance()
+  const spot = useSpot()
   if (!instance) return null
+
+  const washed = spot ? spot.units ?? [] : instance.units
+  const tied = !spot || spot.layer === 'pattern'
 
   return (
     <svg className="sd-overlay" viewBox="0 0 9 9" aria-hidden="true">
-      {instance.units.map(ref => {
+      {washed.map(ref => {
         const r = unitRect(ref)
         return (
           <rect
             key={`${ref.kind}${ref.index}`}
-            className="scope"
+            className={spot ? 'scope is-lit' : 'scope'}
             x={r.x + 0.03} y={r.y + 0.03}
             width={r.w - 0.06} height={r.h - 0.06}
             rx={0.07}
           />
         )
       })}
-      {(instance.links
+      {tied && (instance.links
         ? links(instance.links)
         : ties(instance.units, new Set(instance.patternCells))
       ).map(d => (

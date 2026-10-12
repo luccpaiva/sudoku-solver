@@ -98,6 +98,27 @@ export type StepRecord = {
 // ── UI view model ─────────────────────────────────────────────────────────────
 
 /**
+ * A part of the found step that the board picks out while the rest stands
+ * back: one of the marks its key lists, or the cells and units its
+ * explanation names.
+ */
+export type Spot = {
+  /** The occurrence it is a part of. A spot does not outlive it. */
+  of: StratInstance
+  /** Tells one part of an occurrence from another. */
+  id: string
+  /**
+   * What stays lit in its cells: the marks of one kind (pattern, removes),
+   * the digits to be written in place of the candidates (writes), or all
+   * there is (scope, cells).
+   */
+  layer: 'pattern' | 'writes' | 'removes' | 'scope' | 'cells'
+  cells: ReadonlySet<CellIdx>
+  /** The units to wash, for a part that is rows, columns or boxes. */
+  units?: UnitRef[]
+}
+
+/**
  * Everything a single cell needs to know to render itself.
  * Derived from store state, never stored directly.
  */
@@ -114,6 +135,10 @@ export type CellViewModel = {
   isPatternCell: boolean
   /** Cell holds, or can still take, the digit picked in the digit strip */
   hasFocusDigit: boolean
+  /** Cell is in the part of the step being picked out */
+  isSpot: boolean
+  /** The digit the step writes here, shown as written while that part is picked out */
+  preview: number | null
   candidates: ReadonlySet<number>
   /** Per-candidate decoration */
   candidateAnnotations: ReadonlyMap<number, CandidateAnnotation['kind']>

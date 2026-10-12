@@ -22,6 +22,7 @@ export function SudokuCell({ cell, showCandidates, focusDigit }: Props) {
     cell.isPeer && 'is-peer',
     cell.isSameValue && 'is-same',
     cell.isPatternCell && 'is-pattern',
+    cell.isSpot && 'is-spot',
     cell.hasFocusDigit && 'has-focus',
   ].filter(Boolean).join(' ')
 
@@ -54,6 +55,8 @@ export function SudokuCell({ cell, showCandidates, focusDigit }: Props) {
     >
       {cell.value !== null ? (
         <span className="sd-value">{cell.value}</span>
+      ) : cell.preview !== null ? (
+        <span className="sd-value is-preview">{cell.preview}</span>
       ) : (
         <CandidateGrid cell={cell} visible={showCandidates} focusDigit={focusDigit} />
       )}

@@ -1,4 +1,4 @@
-import { useBoardView, useActiveInstance } from '@/hooks/useBoardView'
+import { useBoardView, useActiveInstance, useSpot } from '@/hooks/useBoardView'
 import { useUIStore } from '@/store/uiStore'
 import { SudokuCell } from './SudokuCell'
 import { BoardOverlay } from './BoardOverlay'
@@ -10,12 +10,16 @@ const COL_LABELS = '123456789'
 export function SudokuBoard() {
   const cells = useBoardView()
   const instance = useActiveInstance()
+  const spot = useSpot()
   const showCandidates = useUIStore(s => s.showCandidates)
-  const focusDigit = useUIStore(s => s.focusDigit)
+  // a part of the step picked out has the board to itself
+  const focusDigit = useUIStore(s => (spot ? null : s.focusDigit))
 
-  // The lines the found step works in get their labels picked out
+  // The lines the found step works in get their labels picked out, or just
+  // the ones picked out of them
+  const scope = spot?.units ?? instance?.units ?? []
   const inScope = (kind: 'row' | 'col', index: number) =>
-    instance?.units.some(unit => unit.kind === kind && unit.index === index) ?? false
+    scope.some(unit => unit.kind === kind && unit.index === index)
 
   return (
     <div className="sd-table">
@@ -30,7 +34,7 @@ export function SudokuBoard() {
         ))}
       </div>
 
-      <div className={`sd-board${focusDigit !== null ? ' is-focusing' : ''}`}>
+      <div className={`sd-board${focusDigit !== null ? ' is-focusing' : ''}`} data-spot={spot?.layer}>
         <BoardOverlay />
         <div role="grid" aria-label="Sudoku board" className="sd-grid">
           {cells.map(cell => (
