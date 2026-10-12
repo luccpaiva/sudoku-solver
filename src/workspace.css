@@ -86,6 +86,9 @@ svg.i.small { width: 15px; height: 15px; }
 
 @keyframes sd-write { from { opacity: 0; transform: scale(.6); } }
 @keyframes sd-drop { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes sd-descend { from { transform: scaleY(0); } }
+@keyframes sd-arrive { from { opacity: 0; transform: scale(.4); } }
+@keyframes sd-say { from { opacity: 0; } }
 
 /* ---- controls ------------------------------------------------------- */
 .ui-btn {
@@ -367,10 +370,53 @@ svg.i.small { width: 15px; height: 15px; }
 .sd-paste .ui-toggle { padding: 4px 11px; }
 .sd-rating { margin-top: 11px; padding-top: 8px; border-top: 1px solid var(--sd-rule); }
 
-.sd-ladder h3 { margin: 8px 0 1px; color: var(--sd-faint); font-size: 12.5px; font-weight: 500; }
-.ui-check.is-found span { color: var(--sd-ink); font-weight: 600; }
-.ui-check.is-found output { color: var(--sd-ink); }
-.ui-check.is-found output::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--sd-pen); }
+.sd-ladder h3 { position: relative; margin: 8px 0 1px; color: var(--sd-faint); font-size: 12.5px; font-weight: 500; }
+
+/* A strategy: its switch, its name, how many steps it has made, and what the
+   last search made of it */
+.sd-ladder { --pace: 14ms; }
+.sd-ladder .ui-check { position: relative; grid-template-columns: 16px minmax(0, auto) 1fr auto; }
+.sd-ladder .ui-check span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sd-ladder .ui-check small { grid-column: 3; color: var(--sd-faint); font-size: 11.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sd-ladder .ui-check output { grid-column: 4; min-width: 26px; color: var(--sd-faint); font-size: 12.5px; text-align: center; animation: sd-say .14s linear both; animation-delay: calc(var(--i) * var(--pace)); }
+
+/* The last search, drawn in the margin: a line that comes down from the top
+   of the list, a row at a time, and stops at the strategy that applied. Past
+   a strategy that is switched off the line is broken: it was not tried. */
+.sd-ladder [data-verdict]::before, .sd-ladder h3[data-passed]::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--sd-faint);
+  transform-origin: top;
+  animation: sd-descend var(--pace) linear both;
+  animation-delay: calc(var(--i) * var(--pace));
+}
+.sd-ladder h3[data-passed]::before { top: -8px; bottom: -1px; }
+.sd-ladder [data-verdict='off']::before { background: repeating-linear-gradient(var(--sd-faint) 0 3px, transparent 3px 6px); }
+.sd-ladder [data-verdict='yes']::before { bottom: 50%; }
+
+/* where it stopped */
+.sd-ladder [data-verdict='yes']::after, .sd-ladder [data-end]::after {
+  content: '';
+  position: absolute;
+  left: -13px;
+  top: calc(50% - 5px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sd-pen);
+  animation: sd-arrive .24s var(--ease) both;
+  animation-delay: calc((var(--i) + 1) * var(--pace));
+}
+/* at the bottom with nothing found: an end with nothing in it */
+.sd-ladder [data-end]::after { top: auto; bottom: -5px; border: 2px solid var(--sd-faint); background: var(--sd-panel); }
+
+.sd-ladder .ui-check.is-found span { color: var(--sd-ink); font-weight: 600; transition: color 0s, font-weight 0s; transition-delay: calc(var(--i) * var(--pace)); }
+.sd-ladder [data-verdict='yes'] output { padding: 0 7px; border-radius: 9px; background: var(--sd-pen); color: var(--sd-on-ink); font-weight: 700; animation-name: sd-arrive; animation-duration: .24s; animation-timing-function: var(--ease); animation-delay: calc((var(--i) + 1) * var(--pace)); }
 
 /* Work area: toolbar, then the board and the step found */
 .sd-work {
