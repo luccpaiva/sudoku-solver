@@ -1,3 +1,5 @@
+import { loadPuzzle } from './board'
+import { ratePuzzle } from './rating'
 import { PEERS } from './units'
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -109,6 +111,36 @@ export function digPuzzle(target: number): string {
   return puzzle.map(v => (v === 0 ? '.' : String(v))).join('')
 }
 
+/**
+ * Few clues do not make a puzzle hard: most of what is dug comes apart with
+ * singles alone. So an expert puzzle is graded by solving it. It is one the
+ * strategies carry to the end, and not without the tough ones, which have
+ * to make at least this many of the steps.
+ */
+const EXPERT_TOUGH_STEPS = 2
+
+/** How many puzzles are dug and solved before the hardest one seen has to do. */
+const EXPERT_ATTEMPTS = 80
+
+function expertPuzzle(): string {
+  let best = ''
+  let bestTough = -1
+
+  for (let attempt = 0; attempt < EXPERT_ATTEMPTS; attempt++) {
+    const puzzle = digPuzzle(TARGET_CLUES.expert)
+    const rating = ratePuzzle(loadPuzzle(puzzle).snapshot)
+    // one the strategies cannot finish is no use here: the solver could not explain it
+    if (!rating.solved) continue
+    if (rating.tough >= EXPERT_TOUGH_STEPS) return puzzle
+    if (rating.tough > bestTough) {
+      best = puzzle
+      bestTough = rating.tough
+    }
+  }
+
+  return best || digPuzzle(TARGET_CLUES.expert)
+}
+
 export function generatePuzzle(difficulty: 'hard' | 'expert'): string {
-  return digPuzzle(TARGET_CLUES[difficulty])
+  return difficulty === 'expert' ? expertPuzzle() : digPuzzle(TARGET_CLUES.hard)
 }

@@ -90,7 +90,7 @@ function summarise(result: StratResult): StepRecord {
 export const useSolverStore = create<SolverState>((set, get) => ({
   given: Array(81).fill(null),
   title: '',
-  rating: { solved: false, steps: 0, hardest: null },
+  rating: { solved: false, steps: 0, hardest: null, tough: 0 },
   history: [EMPTY_SNAPSHOT],
   steps: [],
   cursor: 0,
