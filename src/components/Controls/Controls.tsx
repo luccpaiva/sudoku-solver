@@ -15,7 +15,8 @@ export function Controls() {
   const solved = useSolverStore(s => isSolved(s.currentSnapshot()))
   const canUndo = useSolverStore(s => s.canUndo())
   const canRedo = useSolverStore(s => s.canRedo())
-  const canReset = useSolverStore(s => s.history.length > 1 || s.pending !== null)
+  const canReset = useSolverStore(s =>
+    s.history !== s.opening.history || s.cursor !== s.opening.steps.length || s.pending !== null)
   const undo = useSolverStore(s => s.undo)
   const redo = useSolverStore(s => s.redo)
   const reset = useSolverStore(s => s.reset)

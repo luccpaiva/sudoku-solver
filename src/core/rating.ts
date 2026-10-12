@@ -1,6 +1,6 @@
 import type { Snapshot } from './types'
 import { applyStratResult, isSolved } from './board'
-import { findNextStrategy, STRATEGY_META } from './solver'
+import { findNextStrategy, MAX_STEPS, STRATEGY_META } from './solver'
 
 export type Rating = {
   /** Whether the strategies alone carry the puzzle to the end. */
@@ -15,9 +15,6 @@ export type Rating = {
 
 const RANK = new Map(STRATEGY_META.map((meta, i) => [meta.name, i]))
 const TOUGH = new Set(STRATEGY_META.filter(meta => meta.category === 'tough').map(meta => meta.name))
-
-/** Every step places a digit or removes a candidate, so 729 is a hard ceiling. */
-const MAX_STEPS = 729
 
 /**
  * Solve a copy of the puzzle with every strategy enabled and report

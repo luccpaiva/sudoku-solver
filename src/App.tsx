@@ -24,8 +24,9 @@ export default function App() {
     // ?puzzle=<81 chars> loads a shared puzzle; ?autofind runs the solver once
     const params = new URLSearchParams(window.location.search)
     const puzzle = params.get('puzzle')
+    const [first] = TEST_BOARDS
     if (puzzle && puzzle.length >= 81) loadPuzzle(puzzle, 'Shared puzzle')
-    else loadPuzzle(TEST_BOARDS[0].puzzle, TEST_BOARDS[0].name)
+    else loadPuzzle(first.puzzle, first.name, first.name)
     if (params.has('autofind')) useSolverStore.getState().findNext()
   }, [])
 

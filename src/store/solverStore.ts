@@ -1,8 +1,7 @@
 import { create } from 'zustand'
 import type { CellIdx, Snapshot, StepRecord, StratResult } from '@/core/types'
 import { loadPuzzle, applyStratResult, applyManualEntry, clearManualCell, isSolved } from '@/core/board'
-import { serializeValues } from '@/core/utils'
-import { findNextStrategy } from '@/core/solver'
+import { findNextStrategy, stepsBefore } from '@/core/solver'
 import { ratePuzzle, type Rating } from '@/core/rating'
 
 export interface SolverState {
@@ -17,6 +16,8 @@ export interface SolverState {
   history: Snapshot[]
   /** What each step did: steps[i] led from history[i] to history[i + 1]. */
   steps: StepRecord[]
+  /** The history as the puzzle was loaded, with the board at its end: what Reset goes back to. */
+  opening: { history: Snapshot[]; steps: StepRecord[] }
   /** Which snapshot we're currently viewing (0-based index into history). */
   cursor: number
   /**
@@ -40,7 +41,11 @@ export interface SolverState {
   isGiven: (cell: CellIdx) => boolean
 
   // ── Actions ──────────────────────────────────────────────────────────────
-  loadPuzzleFromString: (input: string, title?: string) => void
+  /**
+   * Load a puzzle. With `openAt`, a strategy's name, it opens where that
+   * strategy first comes in: the steps before it are already taken.
+   */
+  loadPuzzleFromString: (input: string, title?: string, openAt?: string) => void
   findNext: (enabledNames?: Set<string>) => void
   setActiveInstance: (index: number) => void
   applyPending: () => void
@@ -59,6 +64,7 @@ export interface SolverState {
   jumpTo: (cursor: number) => void
   setCell: (cell: CellIdx, digit: number) => void
   clearCell: (cell: CellIdx) => void
+  /** Back to how the puzzle stood when it was loaded. */
   reset: () => void
 }
 
@@ -66,6 +72,8 @@ const EMPTY_SNAPSHOT: Snapshot = {
   values: Array(81).fill(null),
   candidates: Array.from({ length: 81 }, () => new Set([1, 2, 3, 4, 5, 6, 7, 8, 9])),
 }
+
+const BLANK: SolverState['opening'] = { history: [EMPTY_SNAPSHOT], steps: [] }
 
 /** Anything that moves through the history by hand ends the search and the run. */
 const SETTLED = { pending: null, stalled: false, running: false } as const
@@ -91,8 +99,9 @@ export const useSolverStore = create<SolverState>((set, get) => ({
   given: Array(81).fill(null),
   title: '',
   rating: { solved: false, steps: 0, hardest: null, tough: 0 },
-  history: [EMPTY_SNAPSHOT],
-  steps: [],
+  history: BLANK.history,
+  steps: BLANK.steps,
+  opening: BLANK,
   cursor: 0,
   pending: null,
   activeInstance: 0,
@@ -105,15 +114,22 @@ export const useSolverStore = create<SolverState>((set, get) => ({
   canRedo: () => get().cursor < get().history.length - 1,
   isGiven: (cell) => get().given[cell] !== null,
 
-  loadPuzzleFromString: (input, title = 'Pasted puzzle') => {
+  loadPuzzleFromString: (input, title = 'Pasted puzzle', openAt) => {
     const { given, snapshot } = loadPuzzle(input)
+    const lead = (openAt && stepsBefore(snapshot, openAt)) || []
+
+    const history = [snapshot]
+    for (const result of lead) history.push(applyStratResult(history[history.length - 1], result))
+    const steps = lead.map(summarise)
+
     set({
       given,
       title,
       rating: ratePuzzle(snapshot),
-      history: [snapshot],
-      steps: [],
-      cursor: 0,
+      history,
+      steps,
+      opening: { history, steps },
+      cursor: steps.length,
       searchMs: null,
       ...SETTLED,
     })
@@ -215,8 +231,7 @@ export const useSolverStore = create<SolverState>((set, get) => ({
   },
 
   reset: () => {
-    const { given } = get()
-    const { snapshot } = loadPuzzle(serializeValues(given))
-    set({ history: [snapshot], steps: [], cursor: 0, searchMs: null, ...SETTLED })
+    const { history, steps } = get().opening
+    set({ history, steps, cursor: steps.length, searchMs: null, ...SETTLED })
   },
 }))

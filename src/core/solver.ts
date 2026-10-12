@@ -1,4 +1,5 @@
 import type { Snapshot, StratResult, StrategyMeta } from './types'
+import { applyStratResult } from './board'
 import {
   nakedSingles,
   hiddenSingles,
@@ -197,5 +198,28 @@ export function findNextStrategy(snapshot: Snapshot, enabledNames?: Set<string>)
     const result = fn(snapshot)
     if (result !== null) return result
   }
+  return null
+}
+
+/** Every step places a digit or removes a candidate, so 729 is a hard ceiling. */
+export const MAX_STEPS = 729
+
+/**
+ * The steps of a solve that come before a strategy's first turn: with them
+ * applied, that strategy is the next one found. Null when the solve never
+ * calls on it.
+ */
+export function stepsBefore(start: Snapshot, name: string): StratResult[] | null {
+  const taken: StratResult[] = []
+  let snapshot = start
+
+  for (let step = 0; step < MAX_STEPS; step++) {
+    const result = findNextStrategy(snapshot)
+    if (!result) break
+    if (result.name === name) return taken
+    taken.push(result)
+    snapshot = applyStratResult(snapshot, result)
+  }
+
   return null
 }

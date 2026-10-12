@@ -63,7 +63,7 @@ export function PuzzleLoader() {
         <span id="library-label">From the library</span>
         <LibraryMenu
           current={TEST_BOARDS.some(b => b.name === title) ? title : null}
-          onPick={board => loadPuzzle(board.puzzle, board.name)}
+          onPick={board => loadPuzzle(board.puzzle, board.name, board.name)}
         />
       </div>
 
