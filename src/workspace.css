@@ -525,6 +525,8 @@ svg.i.small { width: 15px; height: 15px; }
 }
 
 .sd-cand.is-pattern { background: var(--sd-pen); color: var(--sd-on-ink); font-weight: 700; }
+/* the pattern's other side, where it has two: the same pen, as a ring */
+.sd-cand.is-alternate { background: none; box-shadow: inset 0 0 0 1.5px var(--sd-pen); color: var(--sd-ink); }
 /* struck through, the digit stays readable: bright under a red stroke */
 .sd-cand.is-removed { color: var(--sd-ink); font-weight: 700; }
 .sd-cand.is-removed::after { content: ''; position: absolute; left: -4%; right: -4%; top: calc(50% - 1px); height: 2px; border-radius: 1px; background: var(--sd-strike); transform: rotate(-45deg); }

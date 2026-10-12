@@ -35,9 +35,28 @@ function ties(units: UnitRef[], pattern: ReadonlySet<CellIdx>): string[] {
 }
 
 /**
+ * Ties a pattern asks for by name, cell to cell, each from the edge of one
+ * ring to the edge of the other. A chain is not confined to lines: its
+ * links may run across a box.
+ */
+function links(pairs: ReadonlyArray<[CellIdx, CellIdx]>): string[] {
+  const reach = 0.5 - RING
+  return pairs.map(([a, b]) => {
+    const ax = (a % 9) + 0.5, ay = Math.floor(a / 9) + 0.5
+    const bx = (b % 9) + 0.5, by = Math.floor(b / 9) + 0.5
+    const dx = bx - ax, dy = by - ay
+    // how far along the way the line leaves a ring, which is square
+    const out = reach / Math.max(Math.abs(dx), Math.abs(dy))
+    const point = (x: number, y: number) => `${+x.toFixed(3)} ${+y.toFixed(3)}`
+    return `M${point(ax + dx * out, ay + dy * out)}L${point(bx - dx * out, by - dy * out)}`
+  })
+}
+
+/**
  * What a found step draws under the digits:
  *   1. a highlighter wash over each row, column or box the rule works in
- *   2. ties between the pattern cells in the same line
+ *   2. ties between the pattern cells: the ones the step names, or else
+ *      between those in the same line
  * Rings and candidate marks are drawn by the cells themselves.
  */
 export function BoardOverlay() {
@@ -58,7 +77,10 @@ export function BoardOverlay() {
           />
         )
       })}
-      {ties(instance.units, new Set(instance.patternCells)).map(d => (
+      {(instance.links
+        ? links(instance.links)
+        : ties(instance.units, new Set(instance.patternCells))
+      ).map(d => (
         <path key={d} className="tie" d={d} />
       ))}
     </svg>

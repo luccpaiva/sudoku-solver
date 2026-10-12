@@ -51,6 +51,9 @@ export const CELL_UNITS: ReadonlyArray<{ row: number; col: number; box: number }
     return { row, col, box }
   })
 
+/** SEEN[a * 81 + b] is 1 when a and b are different cells that share a unit. */
+const SEEN = new Uint8Array(81 * 81)
+
 /**
  * The 20 peers of each cell: all cells that share a row, column, or box.
  * PEERS[idx] never includes idx itself.
@@ -67,3 +70,17 @@ export const PEERS: ReadonlyArray<ReadonlyArray<CellIdx>> = Array.from(
     return [...peers]
   },
 )
+
+for (let a = 0; a < 81; a++) {
+  for (const b of PEERS[a]) SEEN[a * 81 + b] = 1
+}
+
+/** Whether two different cells share a row, a column or a box. */
+export function sees(a: CellIdx, b: CellIdx): boolean {
+  return SEEN[a * 81 + b] === 1
+}
+
+/** The cells that see both a and b; neither of the two is among them. */
+export function commonPeers(a: CellIdx, b: CellIdx): CellIdx[] {
+  return PEERS[a].filter(cell => cell !== b && sees(cell, b))
+}

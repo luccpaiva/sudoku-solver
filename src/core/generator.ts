@@ -99,8 +99,16 @@ const TARGET_CLUES: Record<'hard' | 'expert', number> = {
   expert: 22,
 }
 
-export function generatePuzzle(difficulty: 'hard' | 'expert'): string {
+/**
+ * A puzzle with one solution: a full grid with clues taken away, down
+ * towards `target` of them. Says nothing about how hard it is.
+ */
+export function digPuzzle(target: number): string {
   const board  = randomCompleteBoard()
-  const puzzle = digOut(board, TARGET_CLUES[difficulty])
+  const puzzle = digOut(board, target)
   return puzzle.map(v => (v === 0 ? '.' : String(v))).join('')
+}
+
+export function generatePuzzle(difficulty: 'hard' | 'expert'): string {
+  return digPuzzle(TARGET_CLUES[difficulty])
 }

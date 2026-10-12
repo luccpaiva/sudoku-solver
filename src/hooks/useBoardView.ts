@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useSolverStore } from '@/store/solverStore'
 import { useUIStore } from '@/store/uiStore'
 import { PEERS } from '@/core/units'
-import type { CellViewModel, StratInstance } from '@/core/types'
+import type { CandidateAnnotation, CellViewModel, StratInstance } from '@/core/types'
 
 /** The occurrence of the found step that the board and the explainer show. */
 export function useActiveInstance(): StratInstance | null {
@@ -28,7 +28,7 @@ export function useBoardView(): CellViewModel[] {
       selectedCell !== null ? snapshot.values[selectedCell] : null
 
     // Build annotation lookup from the active instance of the pending result
-    const annotationMap = new Map<string, 'highlight' | 'eliminate'>()
+    const annotationMap = new Map<string, CandidateAnnotation['kind']>()
     const patternCellSet = new Set<number>()
 
     if (instance) {
@@ -49,7 +49,7 @@ export function useBoardView(): CellViewModel[] {
         idx !== selectedCell
 
       // Build per-candidate annotation map for this cell
-      const candidateAnnotations = new Map<number, 'highlight' | 'eliminate'>()
+      const candidateAnnotations = new Map<number, CandidateAnnotation['kind']>()
       for (let d = 1; d <= 9; d++) {
         const kind = annotationMap.get(`${idx}:${d}`)
         if (kind) candidateAnnotations.set(d, kind)

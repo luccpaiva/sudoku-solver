@@ -65,8 +65,10 @@ try {
     const removed = instance.candidateAnnotations.filter(a => a.kind === 'eliminate')
     return {
       cells: instance.patternCells,
-      // [cell, digit, 1 for part of the pattern or 0 for struck out]
-      marks: instance.candidateAnnotations.map(a => [a.cell, a.digit, a.kind === 'highlight' ? 1 : 0]),
+      // [cell, digit, 1 for part of the pattern, 2 for its other side, 0 for struck out]
+      marks: instance.candidateAnnotations.map(a => [a.cell, a.digit, a.kind === 'highlight' ? 1 : a.kind === 'alternate' ? 2 : 0]),
+      // ties between pattern cells, where the pattern names its own
+      ...(instance.links ? { links: instance.links } : {}),
       units: instance.units.map(unit => [unit.kind, unit.index]),
       narrative: instance.narrative,
       // the rows of the key beside the board, worded as the app words them

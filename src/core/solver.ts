@@ -10,8 +10,16 @@ import {
   hiddenQuads,
   pointingPairs,
   boxReduction,
+  bugPlusOne,
   xWing,
+  uniqueRectangles,
+  chuteRemotePairs,
+  yWing,
+  wWing,
+  rectangleElimination,
+  simpleColouring,
   swordfish,
+  xyzWing,
   jellyfish,
 } from './strategies'
 
@@ -20,6 +28,7 @@ type Strategy = (snapshot: Snapshot) => StratResult | null
 /**
  * Ordered list of strategies from simplest to hardest.
  * The solver tries them in sequence and returns the first success.
+ * The tough ones are in the order sudokuwiki.org's solver tries them.
  */
 const STRATEGY_PIPELINE: Array<{ fn: Strategy; meta: StrategyMeta }> = [
   {
@@ -63,14 +72,6 @@ const STRATEGY_PIPELINE: Array<{ fn: Strategy; meta: StrategyMeta }> = [
     meta: { name: 'Hidden Triples', category: 'basic', summary: 'Hidden set of size 3' },
   },
   {
-    fn: nakedQuads,
-    meta: { name: 'Naked Quads', category: 'basic', summary: 'Naked set of size 4' },
-  },
-  {
-    fn: hiddenQuads,
-    meta: { name: 'Hidden Quads', category: 'basic', summary: 'Hidden set of size 4' },
-  },
-  {
     fn: pointingPairs,
     meta: {
       name: 'Pointing Pairs',
@@ -87,6 +88,14 @@ const STRATEGY_PIPELINE: Array<{ fn: Strategy; meta: StrategyMeta }> = [
     },
   },
   {
+    fn: bugPlusOne,
+    meta: {
+      name: 'BUG+1',
+      category: 'tough',
+      summary: 'One cell has three candidates, all others two: it keeps its unpaired digit',
+    },
+  },
+  {
     fn: xWing,
     meta: {
       name: 'X-Wing',
@@ -95,11 +104,75 @@ const STRATEGY_PIPELINE: Array<{ fn: Strategy; meta: StrategyMeta }> = [
     },
   },
   {
+    fn: uniqueRectangles,
+    meta: {
+      name: 'Unique Rectangles',
+      category: 'tough',
+      summary: 'Three corners of a two-box rectangle share a pair: remove it from the fourth',
+    },
+  },
+  {
+    fn: chuteRemotePairs,
+    meta: {
+      name: 'Chute Remote Pairs',
+      category: 'tough',
+      summary: 'Same pair twice in a chute, third box lacks one digit: eliminate the other',
+    },
+  },
+  {
+    fn: yWing,
+    meta: {
+      name: 'Y-Wing',
+      category: 'tough',
+      summary: 'Hinge XY sees pincers XZ and YZ: eliminate Z from cells that see both',
+    },
+  },
+  {
+    fn: wWing,
+    meta: {
+      name: 'W-Wing',
+      category: 'tough',
+      summary: 'Two identical pairs joined by a strong link: eliminate from cells that see both',
+    },
+  },
+  {
+    fn: rectangleElimination,
+    meta: {
+      name: 'Rectangle Elimination',
+      category: 'tough',
+      summary: 'Strong link plus a wing would empty a box of the digit: eliminate the wing',
+    },
+  },
+  {
+    fn: simpleColouring,
+    meta: {
+      name: 'Simple Colouring',
+      category: 'tough',
+      summary: "Chain of a digit's pairs: remove a side that cannot be true, and what sees both sides",
+    },
+  },
+  {
+    fn: nakedQuads,
+    meta: { name: 'Naked Quads', category: 'tough', summary: 'Naked set of size 4' },
+  },
+  {
+    fn: hiddenQuads,
+    meta: { name: 'Hidden Quads', category: 'tough', summary: 'Hidden set of size 4' },
+  },
+  {
     fn: swordfish,
     meta: {
       name: 'Swordfish',
       category: 'tough',
       summary: 'X-Wing extended to three rows/columns',
+    },
+  },
+  {
+    fn: xyzWing,
+    meta: {
+      name: 'XYZ-Wing',
+      category: 'tough',
+      summary: 'Hinge XYZ sees pincers XZ and YZ: eliminate Z from cells that see all three',
     },
   },
   {

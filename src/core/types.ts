@@ -26,8 +26,11 @@ export type Snapshot = {
 export type CandidateAnnotation = {
   cell: CellIdx
   digit: number
-  /** green circle = part of the pattern; yellow = will be eliminated */
-  kind: 'highlight' | 'eliminate'
+  /**
+   * highlight = part of the pattern; alternate = part of the pattern too, on
+   * its other side (the second colour of a chain); eliminate = removed
+   */
+  kind: 'highlight' | 'alternate' | 'eliminate'
 }
 
 export type SolvedCell = {
@@ -52,10 +55,16 @@ export type StratInstance = {
   patternCells: CellIdx[]
   /** Cells that get a value set when this result is applied. */
   solvedCells: SolvedCell[]
-  /** Per-candidate annotations (highlight = green, eliminate = red slash). */
+  /** Per-candidate annotations (highlight = disc, alternate = ring, eliminate = slash). */
   candidateAnnotations: CandidateAnnotation[]
   /** Units the logic operates in: tinted on the board, while everything else dims. */
   units: UnitRef[]
+  /**
+   * Ties to draw between pattern cells, for a pattern that is a chain of
+   * cells rather than a set of lines. Without it the board ties the pattern
+   * cells that share a row or column of `units`.
+   */
+  links?: Array<[CellIdx, CellIdx]>
   /** Compact expert notation, e.g. "A2/A3 locks 1/6". */
   label: string
   /** Plain-language explanation for someone new to sudoku. */
@@ -106,8 +115,8 @@ export type CellViewModel = {
   /** Cell holds, or can still take, the digit picked in the digit strip */
   hasFocusDigit: boolean
   candidates: ReadonlySet<number>
-  /** Per-candidate decoration (highlight or eliminate) */
-  candidateAnnotations: ReadonlyMap<number, 'highlight' | 'eliminate'>
+  /** Per-candidate decoration */
+  candidateAnnotations: ReadonlyMap<number, CandidateAnnotation['kind']>
 }
 
 // ── Strategy metadata ─────────────────────────────────────────────────────────
