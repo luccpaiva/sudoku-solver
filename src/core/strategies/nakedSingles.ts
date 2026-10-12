@@ -14,7 +14,7 @@ export function nakedSingles(snapshot: Snapshot): StratResult | null {
         candidateAnnotations: [{ cell: i, digit, kind: 'highlight' }],
         units: [],
         label: `${cellLabel(i)} = ${digit} (only candidate)`,
-        narrative: `${cellLabel(i)} has only one candidate left — it must be ${digit}.`,
+        narrative: `${cellLabel(i)} has only one candidate left: it must be ${digit}.`,
       })
     }
   }

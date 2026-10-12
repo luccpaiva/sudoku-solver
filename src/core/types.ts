@@ -1,5 +1,5 @@
 /**
- * Flat cell index 0–80.
+ * Flat cell index 0 to 80.
  *   row  = (idx / 9) | 0
  *   col  = idx % 9
  *   box  = ((row / 3) | 0) * 3 + ((col / 3) | 0)
@@ -48,13 +48,13 @@ export type UnitRef = {
  * time (with a stepper when a result holds several).
  */
 export type StratInstance = {
-  /** Cells forming the pattern — get background emphasis + ring. */
+  /** Cells forming the pattern: they get background emphasis and a ring. */
   patternCells: CellIdx[]
   /** Cells that get a value set when this result is applied. */
   solvedCells: SolvedCell[]
   /** Per-candidate annotations (highlight = green, eliminate = red slash). */
   candidateAnnotations: CandidateAnnotation[]
-  /** Units the logic operates in — tinted on the board; everything else dims. */
+  /** Units the logic operates in: tinted on the board, while everything else dims. */
   units: UnitRef[]
   /** Compact expert notation, e.g. "A2/A3 locks 1/6". */
   label: string
@@ -90,7 +90,7 @@ export type StepRecord = {
 
 /**
  * Everything a single cell needs to know to render itself.
- * Derived from store state — never stored directly.
+ * Derived from store state, never stored directly.
  */
 export type CellViewModel = {
   idx: CellIdx

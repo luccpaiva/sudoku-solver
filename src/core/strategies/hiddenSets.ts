@@ -20,7 +20,7 @@ function hiddenSetsForSize(snapshot: Snapshot, size: 2 | 3 | 4): StratResult | n
   const { values, candidates } = snapshot
 
   // One instance per (cells, digits) combo. The same hidden set seen from a
-  // second unit yields identical eliminations — just record the extra unit.
+  // second unit yields identical eliminations; just record the extra unit.
   const byCombo = new Map<string, StratInstance>()
 
   for (const [kind, group] of UNIT_GROUPS) {

@@ -39,7 +39,7 @@ const STRATEGY_PIPELINE: Array<{ fn: Strategy; meta: StrategyMeta }> = [
     meta: {
       name: 'Naked Pairs',
       category: 'basic',
-      summary: 'Two cells sharing exactly two candidates — eliminate from unit peers',
+      summary: 'Two cells sharing exactly two candidates: eliminate from unit peers',
     },
   },
   {
@@ -55,7 +55,7 @@ const STRATEGY_PIPELINE: Array<{ fn: Strategy; meta: StrategyMeta }> = [
     meta: {
       name: 'Hidden Pairs',
       category: 'basic',
-      summary: 'Two digits that only appear in two cells — eliminate other candidates from them',
+      summary: 'Two digits that only appear in two cells: eliminate other candidates from them',
     },
   },
   {
@@ -91,7 +91,7 @@ const STRATEGY_PIPELINE: Array<{ fn: Strategy; meta: StrategyMeta }> = [
     meta: {
       name: 'X-Wing',
       category: 'tough',
-      summary: 'Digit locked in two rows forming a rectangle — eliminate from shared columns',
+      summary: 'Digit locked in two rows forming a rectangle: eliminate from shared columns',
     },
   },
   {

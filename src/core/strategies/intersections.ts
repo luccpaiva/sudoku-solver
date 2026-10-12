@@ -53,7 +53,7 @@ export function pointingPairs(snapshot: Snapshot): StratResult | null {
         narrative:
           `Inside ${unitDisplayName(box)}, the digit ${digit} fits only in ${unitDisplayName(line)}. ` +
           `One of those cells must be the ${digit}, so it can't appear anywhere else ` +
-          `in ${unitDisplayName(line)} — the crossed-out candidates are removed.`,
+          `in ${unitDisplayName(line)}: the crossed-out candidates are removed.`,
       })
     }
   }

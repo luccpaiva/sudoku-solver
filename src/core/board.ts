@@ -111,7 +111,7 @@ export function clearManualCell(
   values[cell] = null
   const candidates = initCandidates(values)
   // Re-apply any values that are in the current snapshot but not in given
-  // (they were manual entries that were already set — we just need the init)
+  // (they were manual entries that were already set; we just need the init)
   return { values, candidates }
 }
 

@@ -15,11 +15,11 @@ npm run dev
 
 `src/core/`. A position is a snapshot: 81 values and, for every empty cell, the digits it can still take. Nothing is changed in place. A step makes the next snapshot, so a solve is a list of them and any step can be gone back to.
 
-- **Pipeline** — `solver.ts` tries the strategies in order and returns the first one that finds something. Any of them can be switched off; when none that is left applies, the solver stops rather than guess.
-- **Occurrences** — a strategy returns every place its pattern occurs, each with its cells, the candidates it keeps and the ones it strikes, the rows, columns and boxes it reasoned over, and a sentence that explains it. One step applies them all.
-- **Propagation** — a digit written into a cell is struck from that cell's row, column and box (`board.ts`).
-- **Rating** — a puzzle is solved once when it is loaded, with every strategy on (`rating.ts`): the number of steps and the hardest strategy it called for, or where the strategies run out.
-- **Generator** — `generator.ts` fills a grid by backtracking, then takes clues away in random order, keeping each removal only while the solution stays unique. Hard aims for 26 clues and Expert for 22; Easy and Medium come from `sudoku-gen`.
+- **Pipeline**: `solver.ts` tries the strategies in order and returns the first one that finds something. Any of them can be switched off; when none that is left applies, the solver stops rather than guess.
+- **Occurrences**: a strategy returns every place its pattern occurs, each with its cells, the candidates it keeps and the ones it strikes, the rows, columns and boxes it reasoned over, and a sentence that explains it. One step applies them all.
+- **Propagation**: a digit written into a cell is struck from that cell's row, column and box (`board.ts`).
+- **Rating**: a puzzle is solved once when it is loaded, with every strategy on (`rating.ts`): the number of steps and the hardest strategy it called for, or where the strategies run out.
+- **Generator**: `generator.ts` fills a grid by backtracking, then takes clues away in random order, keeping each removal only while the solution stays unique. Hard aims for 26 clues and Expert for 22; Easy and Medium come from `sudoku-gen`.
 
 ## Strategies
 

@@ -76,7 +76,7 @@ function findFish(
       label:
         `${FISH_NAMES[size]} on ${digit}: ${lineWord(baseKind)} ${lineNames(baseKind, baseCombo).join('&')}, ` +
         `${lineWord(coverKind)} ${lineNames(coverKind, coverSorted).join('&')}` +
-        ` — eliminates ${digit} from ${toEliminate.map(cellLabel).join(', ')}`,
+        `, eliminates ${digit} from ${toEliminate.map(cellLabel).join(', ')}`,
       narrative: narrate(size, digit, baseKind, baseCombo, coverKind, coverSorted),
     })
   }
@@ -103,7 +103,7 @@ function narrate(
 
   if (size === 2) {
     return (
-      `The only places for ${digit} in ${baseList} are ${coverList} — four corners of ` +
+      `The only places for ${digit} in ${baseList} are ${coverList}: four corners of ` +
       `a rectangle. The two ${digit}s must sit on opposite corners, so every other ` +
       `${digit} in those ${lineWord(coverKind)} is removed.`
     )

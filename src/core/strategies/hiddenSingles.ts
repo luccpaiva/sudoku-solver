@@ -34,7 +34,7 @@ export function hiddenSingles(snapshot: Snapshot): StratResult | null {
           units: [unit],
           label: `${cellLabel(cell)} = ${digit} (unique in ${unitDisplayName(unit)})`,
           narrative:
-            `In ${unitDisplayName(unit)}, only ${cellLabel(cell)} can take a ${digit} — ` +
+            `In ${unitDisplayName(unit)}, only ${cellLabel(cell)} can take a ${digit}: ` +
             `every other cell there already rules it out. So ${cellLabel(cell)} must be ${digit}.`,
         })
       }

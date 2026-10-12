@@ -96,7 +96,7 @@ function narrate(
   const claim = size === 2 ? 'both digits' : `all ${COUNT_WORDS[size]} digits`
   return (
     `${cells} can each only be ${digitList}. Between them these ${COUNT_WORDS[size]} cells ` +
-    `claim ${claim}, so no other cell in ${where} can hold them — ` +
+    `claim ${claim}, so no other cell in ${where} can hold them: ` +
     `the crossed-out candidates are removed.`
   )
 }

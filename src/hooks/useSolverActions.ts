@@ -40,7 +40,7 @@ export function useAutoRun() {
 }
 
 /**
- * Keyboard handler for the board — number keys set cells, Backspace clears.
+ * Keyboard handler for the board: number keys set cells, Backspace clears.
  */
 export function useCellKeyHandler() {
   const setCell = useSolverStore(s => s.setCell)

@@ -7,7 +7,7 @@ import { ratePuzzle, type Rating } from '@/core/rating'
 
 export interface SolverState {
   // ── Persistent data ──────────────────────────────────────────────────────
-  /** Original puzzle clues — never changes after load. */
+  /** Original puzzle clues; never changes after load. */
   given: ReadonlyArray<number | null>
   /** Where the puzzle came from, e.g. "X-Wing" or "Generated, hard". */
   title: string
