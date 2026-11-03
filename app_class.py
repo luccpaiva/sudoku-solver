@@ -53,7 +53,7 @@ class Game:
             'Simple Colouring',
             'Y-Wing',
             'Rect Elim',
-            'Swordfish',
+            'Swordfish/Jellyfish',
             'XYZ-Wing',
             'BUG',
         ]

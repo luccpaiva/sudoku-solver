@@ -1,0 +1,122 @@
+import type { CellIdx, CandidateAnnotation, UnitRef } from './types'
+
+// ── Cell labelling ────────────────────────────────────────────────────────────
+
+/** Row labels A-J, skipping I to avoid confusion with 1. */
+export const ROW_LABELS = 'ABCDEFGHJ'
+
+/** Human-readable cell label, e.g. index 0 → "A1", index 80 → "J9". */
+export function cellLabel(idx: CellIdx): string {
+  return `${ROW_LABELS[(idx / 9) | 0]}${(idx % 9) + 1}`
+}
+
+/** Board-matching unit name: "row A", "column 5", "box 3". */
+export function unitDisplayName(ref: UnitRef): string {
+  if (ref.kind === 'row') return `row ${ROW_LABELS[ref.index]}`
+  if (ref.kind === 'col') return `column ${ref.index + 1}`
+  return `box ${ref.index + 1}`
+}
+
+const UNIT_WORDS: Record<UnitRef['kind'], [string, string]> = {
+  row: ['row', 'rows'],
+  col: ['column', 'columns'],
+  box: ['box', 'boxes'],
+}
+
+/**
+ * Several units as one phrase, grouped by kind:
+ * "row A", "rows B and F, columns 3 and 7".
+ */
+export function unitsDisplayName(refs: ReadonlyArray<UnitRef>): string {
+  return (['row', 'col', 'box'] as const)
+    .map(kind => {
+      const names = refs
+        .filter(ref => ref.kind === kind)
+        .map(ref => (kind === 'row' ? ROW_LABELS[ref.index] : String(ref.index + 1)))
+      if (names.length === 0) return ''
+      return `${UNIT_WORDS[kind][names.length === 1 ? 0 : 1]} ${proseList(names)}`
+    })
+    .filter(Boolean)
+    .join(', ')
+}
+
+/** Prose list: [1,6] → "1 and 6"; [1,4,6] → "1, 4 and 6". */
+export function proseList(items: ReadonlyArray<string | number>, conj = 'and'): string {
+  const strs = items.map(String)
+  if (strs.length <= 1) return strs.join('')
+  return `${strs.slice(0, -1).join(', ')} ${conj} ${strs[strs.length - 1]}`
+}
+
+// ── Puzzle parsing ────────────────────────────────────────────────────────────
+
+/**
+ * Parse a puzzle from a string (81 chars, '.' or '0' for empty)
+ * or a 9×9 grid of numbers (0 = empty).
+ * Returns an 81-element array where null = empty cell.
+ */
+export function parseInput(input: string | number[][]): Array<number | null> {
+  if (typeof input === 'string') {
+    const end = input.indexOf('-')
+    const src = end === -1 ? input : input.slice(0, end)
+    return src
+      .split('')
+      .filter(c => c !== '\n' && c !== ' ')
+      .slice(0, 81)
+      .map(c => (c === '.' || c === '0' ? null : parseInt(c, 10)))
+  }
+
+  return input.flat().map(v => (v === 0 ? null : v))
+}
+
+/**
+ * Serialize the current board values to a compact string
+ * (81 chars, '.' for empty).
+ */
+export function serializeValues(values: ReadonlyArray<number | null>): string {
+  return values.map(v => (v === null ? '.' : String(v))).join('')
+}
+
+// ── Combinatorics ─────────────────────────────────────────────────────────────
+
+/**
+ * Returns all r-length combinations from arr.
+ * E.g. combinations([1,2,3], 2) → [[1,2],[1,3],[2,3]]
+ */
+export function combinations<T>(arr: readonly T[], r: number): T[][] {
+  if (r === 0) return [[]]
+  if (arr.length < r) return []
+
+  const result: T[][] = []
+
+  function go(start: number, current: T[]): void {
+    if (current.length === r) {
+      result.push([...current])
+      return
+    }
+    const remaining = r - current.length
+    for (let i = start; i <= arr.length - remaining; i++) {
+      current.push(arr[i])
+      go(i + 1, current)
+      current.pop()
+    }
+  }
+
+  go(0, [])
+  return result
+}
+
+// ── Annotation helpers ────────────────────────────────────────────────────────
+
+/**
+ * Deduplicate candidate annotations, keeping the first occurrence
+ * of each (cell, digit, kind) triple.
+ */
+export function dedupeAnnotations(annotations: CandidateAnnotation[]): CandidateAnnotation[] {
+  const seen = new Set<string>()
+  return annotations.filter(a => {
+    const key = `${a.cell}:${a.digit}:${a.kind}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}

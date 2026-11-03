@@ -1,0 +1,860 @@
+/* ========================================
+   Sudoku Solver: the workspace
+   Everything inside .sd-shell. The page around it is not styled here, so the
+   same file serves the app, which fills the window, and a page that lays the
+   workspace out at a fixed size and scales it.
+   ======================================== */
+:root {
+  /* paper and pencil after dark: a warm charcoal with no colour of its own.
+     The only hues on screen are the three marks the solver makes */
+  color-scheme: dark;
+  --sd-bg: #1f1d1b;
+  --sd-panel: #262320;
+  --sd-view: #191816;
+  --sd-sheet: #23201d;
+  --sd-raised: #322e2a;
+  --sd-line: #453f38;
+  --sd-rule: #302c28;
+  --sd-grid: #3b3631;
+  --sd-ink: #f2ede5;
+  --sd-muted: #b0a798;
+  --sd-faint: #7e766a;
+  --sd-on-ink: #1a1816;
+  --sd-pen: #4a8fe8;      /* what the solver found, and what it writes in */
+  --sd-strike: #e5633a;   /* what it rules out */
+  --sd-scope: #e3b54a;    /* where it is looking: highlighter */
+  --sd-good: #4cc38a;
+  --sd-warn: #f2b53a;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --sd-bg: #efece6;
+  --sd-panel: #f8f6f2;
+  --sd-view: #e8e5de;
+  --sd-sheet: #fdfcf9;
+  --sd-raised: #e6e2da;
+  --sd-line: #cbc5b9;
+  --sd-rule: #e0dcd3;
+  --sd-grid: #d9d4c9;
+  --sd-ink: #1f1d1a;
+  --sd-muted: #5d574d;
+  --sd-faint: #8c8579;
+  --sd-on-ink: #fbfaf7;
+  --sd-pen: #1f5fd0;
+  --sd-strike: #c8401a;
+  --sd-scope: #c99700;
+  --sd-good: #157a45;
+  --sd-warn: #a06a00;
+}
+
+/* ---- shell ---------------------------------------------------------- */
+.sd-shell, .sd-shell *, .sd-shell *::before, .sd-shell *::after { box-sizing: border-box; }
+
+.sd-shell {
+  display: grid;
+  grid-template-rows: 46px minmax(0, 1fr);
+  background: var(--sd-bg);
+  color: var(--sd-ink);
+  font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow: hidden;
+  container: shell / inline-size;
+}
+
+.sd-shell button, .sd-shell input { font-family: inherit; }
+.sd-shell button { user-select: none; }
+.sd-shell :focus-visible { outline: 2px solid var(--sd-ink); outline-offset: 2px; }
+.sd-shell h1, .sd-shell h2, .sd-shell h3, .sd-shell p, .sd-shell ol, .sd-shell dl, .sd-shell dd { margin: 0; }
+.sd-shell ol { padding: 0; list-style: none; }
+.sd-shell output, .sd-shell b, .sd-shell strong, .sd-shell em { font-variant-numeric: tabular-nums; }
+
+svg.i {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+svg.i.small { width: 15px; height: 15px; }
+
+@keyframes sd-write { from { opacity: 0; transform: scale(.6); } }
+@keyframes sd-drop { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes sd-descend { from { transform: scaleY(0); } }
+@keyframes sd-arrive { from { opacity: 0; transform: scale(.4); } }
+@keyframes sd-say { from { opacity: 0; } }
+
+/* ---- controls ------------------------------------------------------- */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--sd-line);
+  border-radius: 5px;
+  background: var(--sd-raised);
+  color: var(--sd-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .12s var(--ease), border-color .12s var(--ease), filter .12s var(--ease);
+}
+
+.ui-btn:hover, .ui-btn.is-hover { border-color: var(--sd-faint); }
+.ui-btn.solid { border-color: var(--sd-ink); background: var(--sd-ink); color: var(--sd-on-ink); }
+.ui-btn.solid:hover, .ui-btn.solid.is-hover { filter: brightness(.9); }
+.ui-btn[disabled] { opacity: .45; cursor: default; filter: none; }
+
+.ui-btn kbd {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, currentColor 13%, transparent);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.ui-toggle {
+  padding: 5px 12px;
+  border: 1px solid var(--sd-line);
+  border-radius: 5px;
+  background: var(--sd-bg);
+  color: var(--sd-muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  cursor: pointer;
+  transition: background-color .12s var(--ease), color .12s var(--ease), border-color .12s var(--ease);
+}
+
+.ui-toggle:hover, .ui-toggle.is-hover { color: var(--sd-ink); border-color: var(--sd-faint); }
+.ui-toggle.is-on { background: var(--sd-ink); border-color: var(--sd-ink); color: var(--sd-on-ink); }
+.ui-toggle[disabled] { opacity: .45; cursor: default; }
+
+/* a row of things to do, as against a row of things to choose between */
+.ui-acts {
+  display: inline-flex;
+  border: 1px solid var(--sd-line);
+  border-radius: 5px;
+  background: var(--sd-bg);
+  overflow: hidden;
+}
+
+.ui-acts button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  border: 0;
+  border-right: 1px solid var(--sd-line);
+  background: none;
+  color: var(--sd-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .12s var(--ease), color .12s var(--ease);
+}
+
+.ui-acts button:last-child { border-right: 0; }
+.ui-acts button:hover, .ui-acts button.is-hover { background: var(--sd-raised); color: var(--sd-ink); }
+.ui-acts button[disabled] { background: none; color: var(--sd-faint); opacity: .55; cursor: default; }
+.ui-acts button:focus-visible { outline-offset: -2px; }
+
+.ui-check {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 3px 0;
+  border: 0;
+  background: none;
+  color: var(--sd-muted);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-check i {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--sd-faint);
+  border-radius: 3px;
+  color: var(--sd-on-ink);
+  transition: background-color .12s, border-color .12s;
+}
+
+.ui-check i svg { width: 13px; height: 13px; stroke-width: 3; opacity: 0; }
+.ui-check.is-on i { background: var(--sd-ink); border-color: var(--sd-ink); }
+.ui-check.is-on i svg { opacity: 1; }
+.ui-check:hover span, .ui-check.is-hover span { color: var(--sd-ink); }
+.ui-check:not(.is-on) span { color: var(--sd-faint); }
+.ui-check output { color: var(--sd-muted); font-size: 12.5px; font-weight: 500; }
+
+.sd-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sd-muted);
+  font-size: 12.5px;
+  text-decoration: underline;
+  text-decoration-color: var(--sd-faint);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.sd-link:hover, .sd-link.is-hover { color: var(--sd-ink); }
+
+.sd-note { color: var(--sd-muted); font-size: 12.5px; }
+
+.sd-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 2px 0; font-size: 13px; }
+.sd-row span { color: var(--sd-muted); }
+.sd-row b { font-size: 13.5px; font-weight: 600; text-align: right; }
+
+/* ---- top bar -------------------------------------------------------- */
+.sd-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 0 10px 0 18px;
+  background: var(--sd-panel);
+  border-bottom: 1px solid var(--sd-line);
+  z-index: 20;
+}
+
+.sd-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+.sd-brand svg { display: block; width: 19px; height: 19px; }
+.sd-brand .squares { fill: var(--sd-ink); }
+.sd-brand .found { fill: var(--sd-pen); }
+
+.sd-status {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: auto;
+  color: var(--sd-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.sd-status b { color: var(--sd-ink); font-weight: 600; }
+
+.sd-theme {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--sd-muted);
+  cursor: pointer;
+  transition: color .12s var(--ease), border-color .12s var(--ease);
+}
+
+.sd-theme:hover { border-color: var(--sd-line); color: var(--sd-ink); }
+
+/* ---- the three columns ---------------------------------------------- */
+.sd-main {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 260px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* on either side of the board: the puzzle and its solve, the strategies */
+.sd-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden auto;
+  background: var(--sd-panel);
+  scrollbar-width: thin;
+  scrollbar-color: var(--sd-line) transparent;
+}
+
+.sd-side:first-child { border-right: 1px solid var(--sd-line); }
+.sd-side:last-child { border-left: 1px solid var(--sd-line); }
+
+/* Groups */
+.sd-group { padding: 11px 16px 12px; border-bottom: 1px solid var(--sd-rule); }
+.sd-group:last-child { border-bottom: 0; }
+.sd-group > header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.sd-group h2, .sd-pane h2 { font-size: 13.5px; font-weight: 600; letter-spacing: .01em; }
+.sd-hint { margin-top: 2px !important; color: var(--sd-faint); font-size: 12.5px; }
+
+.sd-field { display: block; margin-top: 9px; }
+.sd-field > span { display: block; margin-bottom: 4px; color: var(--sd-muted); font-size: 12.5px; }
+
+.sd-field input, .sd-menu > button {
+  width: 100%;
+  height: 30px;
+  border: 1px solid var(--sd-line);
+  border-radius: 5px;
+  background: var(--sd-bg);
+  color: var(--sd-ink);
+  font-size: 13px;
+  transition: border-color .12s var(--ease);
+}
+
+.sd-field input { padding: 0 9px; font-variant-numeric: tabular-nums; }
+.sd-field input:hover, .sd-menu > button:hover, .sd-menu > button.is-hover, .sd-menu > button.is-open { border-color: var(--sd-faint); }
+
+/* the library: a button and the list it opens */
+.sd-menu { position: relative; }
+.sd-menu > button { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 6px 0 9px; font-weight: 500; text-align: left; cursor: pointer; }
+.sd-menu > button svg { color: var(--sd-muted); transition: transform .15s var(--ease); }
+.sd-menu > button.is-open svg { transform: rotate(180deg); }
+
+.sd-menu ul {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--sd-line);
+  border-radius: 6px;
+  background: var(--sd-raised);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 28px rgba(0, 0, 0, .3);
+  list-style: none;
+  animation: sd-drop .14s var(--ease);
+}
+
+.sd-menu li button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--sd-muted);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sd-menu li button:hover, .sd-menu li button.is-hover, .sd-menu li button:focus-visible { background: var(--sd-line); color: var(--sd-ink); }
+.sd-menu li button[aria-selected='true'] { color: var(--sd-ink); font-weight: 600; }
+.sd-menu li button:focus-visible { outline-offset: -2px; }
+
+.sd-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.sd-quick .ui-toggle { padding: 4px 0; font-size: 12.5px; text-align: center; }
+.sd-paste { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; }
+.sd-paste .ui-toggle { padding: 4px 11px; }
+.sd-rating { margin-top: 11px; padding-top: 8px; border-top: 1px solid var(--sd-rule); }
+
+/* a family of strategies; a click on its name switches the whole family */
+.sd-ladder h3 { margin: 10px 0 1px; }
+.sd-ladder h3 button { padding: 1px 0; border: 0; background: none; color: var(--sd-muted); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.sd-ladder h3 button:hover, .sd-ladder h3 button:focus-visible { color: var(--sd-ink); }
+
+/* A strategy: its switch, its name, how many steps it has made, and what the
+   last search made of it */
+.sd-ladder { --pace: 14ms; }
+.sd-ladder .ui-check { position: relative; grid-template-columns: 16px minmax(0, auto) 1fr auto; }
+.sd-ladder .ui-check span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sd-ladder .ui-check small { grid-column: 3; color: var(--sd-faint); font-size: 11.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sd-ladder .ui-check output { grid-column: 4; min-width: 26px; color: var(--sd-faint); font-size: 12.5px; text-align: center; animation: sd-say .14s linear both; animation-delay: calc(var(--i) * var(--pace)); }
+
+/* The last search, drawn in the margin in the order it went: simplest
+   first, so it hops between families. Each strategy it tried gets a mark, one
+   after another; a strategy that is switched off gets a broken one: it was
+   not tried. The one that applied gets a dot. */
+.sd-ladder [data-verdict]::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--sd-faint);
+  transform-origin: top;
+  animation: sd-descend var(--pace) linear both;
+  animation-delay: calc(var(--i) * var(--pace));
+}
+.sd-ladder [data-verdict='off']::before { background: repeating-linear-gradient(var(--sd-faint) 0 3px, transparent 3px 6px); }
+.sd-ladder [data-verdict='yes']::before { content: none; }
+
+/* where it stopped */
+.sd-ladder [data-verdict='yes']::after, .sd-ladder [data-end]::after {
+  content: '';
+  position: absolute;
+  left: -13px;
+  top: calc(50% - 5px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sd-pen);
+  animation: sd-arrive .24s var(--ease) both;
+  animation-delay: calc((var(--i) + 1) * var(--pace));
+}
+/* at the bottom with nothing found: an end with nothing in it, once every
+   strategy has been marked */
+.sd-ladder [data-end]::after { top: auto; bottom: -5px; border: 2px solid var(--sd-faint); background: var(--sd-panel); animation-delay: calc(var(--last) * var(--pace)); }
+
+.sd-ladder .ui-check.is-found span { color: var(--sd-ink); font-weight: 600; transition: color 0s, font-weight 0s; transition-delay: calc(var(--i) * var(--pace)); }
+.sd-ladder [data-verdict='yes'] output { padding: 0 7px; border-radius: 9px; background: var(--sd-pen); color: var(--sd-on-ink); font-weight: 700; animation-name: sd-arrive; animation-duration: .24s; animation-timing-function: var(--ease); animation-delay: calc((var(--i) + 1) * var(--pace)); }
+
+/* Work area: toolbar, then the board and the step found */
+.sd-work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 44px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  container: work / inline-size;
+}
+
+.sd-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--sd-panel);
+  border-bottom: 1px solid var(--sd-line);
+}
+
+.sd-toolbar #step { min-width: 142px; }
+.sd-toolbar #run { min-width: 84px; }
+.sd-toolbar .ui-acts { margin-left: 6px; }
+.sd-toolbar .ui-check { width: auto; margin-left: auto; padding: 6px 4px; }
+.sd-toolbar .ui-check.is-on span { color: var(--sd-ink); }
+
+/* as the middle column narrows, the toolbar gives up words before it gives up buttons */
+@container work (max-width: 650px) {
+  .sd-toolbar .ui-acts { margin-left: 0; }
+  .sd-toolbar .ui-acts span { display: none; }
+}
+
+@container work (max-width: 510px) {
+  .sd-toolbar kbd { display: none; }
+  .sd-toolbar #step { min-width: 96px; }
+  .sd-toolbar #run { min-width: 0; }
+}
+
+/* ---- the board, and under it the step found -------------------------- */
+.sd-view {
+  min-height: 0;
+  overflow: hidden;
+  background: var(--sd-view);
+  container: view / size;
+}
+
+.sd-stage {
+  /* the room kept for the step, whatever it has to say: the board is sized
+     around it, so it stays where it is from one step to the next */
+  --step: 166px;
+  --axis: 26px;
+  --strip: 52px;
+  --fit: min(100cqw - 2 * var(--axis) - 24px, 100cqh - var(--axis) - var(--strip) - var(--step) - 26px);
+  --board: var(--fit);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+/* whole cells inside the 2px frame, so the lines of the grid fall on whole pixels */
+@supports (width: round(down, 10px, 9px)) {
+  .sd-stage { --board: calc(round(down, var(--fit) - 4px, 9px) + 4px); }
+}
+
+/* the board takes all the room there is, between its labels and the strip */
+.sd-table {
+  --cell: calc(var(--board) / 9);
+  display: grid;
+  flex: none;
+  grid-template-columns: var(--axis) var(--board) var(--axis);
+  grid-template-rows: var(--axis) var(--board) var(--strip);
+  margin-top: 6px;
+  user-select: none;
+}
+
+.sd-axis { display: grid; place-items: center; color: var(--sd-faint); font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.sd-axis.cols { grid-area: 1 / 2; grid-template-columns: repeat(9, 1fr); }
+.sd-axis.rows { grid-area: 2 / 1; grid-template-rows: repeat(9, 1fr); }
+.sd-axis span { transition: color .15s var(--ease); }
+.sd-axis .is-scope { color: var(--sd-ink); font-weight: 700; }
+
+.sd-board {
+  grid-area: 2 / 2;
+  position: relative;
+  border: 2px solid var(--sd-muted);
+  background: var(--sd-sheet);
+}
+
+.sd-grid {
+  position: relative;
+  display: grid;
+  grid-template: repeat(9, minmax(0, 1fr)) / repeat(9, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+}
+
+.sd-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--sd-grid);
+  border-bottom: 1px solid var(--sd-grid);
+  cursor: pointer;
+  transition: background-color .1s var(--ease);
+}
+
+.sd-cell:nth-child(9n + 3), .sd-cell:nth-child(9n + 6) { border-right: 2px solid var(--sd-faint); }
+.sd-cell:nth-child(n + 19):nth-child(-n + 27), .sd-cell:nth-child(n + 46):nth-child(-n + 54) { border-bottom: 2px solid var(--sd-faint); }
+.sd-cell:nth-child(9n) { border-right: 0; }
+.sd-cell:nth-child(n + 73) { border-bottom: 0; }
+.sd-shell .sd-cell:focus-visible { outline-offset: -4px; }
+
+/* tints, so what is drawn under the cells shows through */
+.sd-cell.is-peer { background: color-mix(in srgb, var(--sd-ink) 4%, transparent); }
+.sd-cell.has-focus { background: color-mix(in srgb, var(--sd-ink) 10%, transparent); }
+.sd-cell.is-same { background: color-mix(in srgb, var(--sd-ink) 12%, transparent); }
+.sd-cell.is-selected { background: color-mix(in srgb, var(--sd-ink) 13%, transparent); box-shadow: inset 0 0 0 2px var(--sd-ink); }
+
+/* the ring round a cell of the pattern; BoardOverlay's ties end on it */
+.sd-cell.is-pattern::after {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  border: 2px solid var(--sd-pen);
+  border-radius: 12%;
+  pointer-events: none;
+  transition: opacity .15s var(--ease);
+}
+
+.sd-value {
+  font-size: calc(var(--cell) * .52);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  transition: opacity .15s var(--ease);
+}
+
+.sd-cell.is-placed .sd-value { color: var(--sd-pen); font-weight: 500; animation: sd-write .26s var(--ease); }
+.sd-board.is-focusing .sd-cell:not(.has-focus) .sd-value { opacity: .34; }
+
+.sd-cands {
+  position: absolute;
+  inset: 12%;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  place-items: center;
+  transition: opacity .15s var(--ease);
+}
+
+.sd-cands i { font-style: normal; }
+
+.sd-cand {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.22em;
+  height: 1.22em;
+  border-radius: 50%;
+  color: var(--sd-muted);
+  font-size: calc(var(--cell) * .215);
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  transition: opacity .15s var(--ease);
+}
+
+.sd-cand.is-pattern { background: var(--sd-pen); color: var(--sd-on-ink); font-weight: 700; }
+/* the pattern's other side, where it has two: the same pen, as a ring */
+.sd-cand.is-alternate { background: none; box-shadow: inset 0 0 0 1.5px var(--sd-pen); color: var(--sd-ink); }
+/* struck through, the digit stays readable: bright under a red stroke */
+.sd-cand.is-removed { color: var(--sd-ink); font-weight: 700; }
+.sd-cand.is-removed::after { content: ''; position: absolute; left: -4%; right: -4%; top: calc(50% - 1px); height: 2px; border-radius: 1px; background: var(--sd-strike); transform: rotate(-45deg); }
+.sd-cand.is-focus { color: var(--sd-ink); font-weight: 700; }
+.sd-board.is-focusing .sd-cand:not(.is-focus, .is-pattern, .is-removed) { opacity: .3; }
+
+/* A part of the step picked out from its explanation: its cells stay lit and
+   the rest of the board stands back */
+.sd-board[data-spot] .sd-cell:not(.is-spot) > *,
+.sd-board[data-spot] .sd-cell:not(.is-spot)::after { opacity: .26; }
+.sd-board[data-spot='pattern'] .is-spot,
+.sd-board[data-spot='writes'] .is-spot,
+.sd-board[data-spot='cells'] .is-spot { background: color-mix(in srgb, var(--sd-pen) 18%, transparent); }
+.sd-board[data-spot='removes'] .is-spot { background: color-mix(in srgb, var(--sd-strike) 16%, transparent); }
+/* and inside them, only the marks of that part */
+.sd-board[data-spot='pattern'] .is-spot .sd-cand.is-removed,
+.sd-board[data-spot='removes'] .is-spot .sd-cand:not(.is-removed) { opacity: .3; }
+/* what the step writes, as it will stand once applied */
+.sd-value.is-preview { color: var(--sd-pen); font-weight: 500; animation: sd-write .26s var(--ease); }
+
+/* under the cells: the highlighter and the ties of a found step */
+.sd-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.sd-overlay .scope { fill: var(--sd-scope); fill-opacity: .1; stroke: var(--sd-scope); stroke-opacity: .55; stroke-width: 1; vector-effect: non-scaling-stroke; transition: fill-opacity .15s var(--ease), stroke-opacity .15s var(--ease); }
+.sd-overlay .scope.is-lit { fill-opacity: .2; stroke-opacity: .95; }
+.sd-overlay .tie { fill: none; stroke: var(--sd-pen); stroke-opacity: .5; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.sd-overlay .tie.is-weak { stroke-dasharray: 4 3; }
+
+/* the nine digits, and how many of each are still to place */
+.sd-digits {
+  grid-area: 3 / 2;
+  align-self: end;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  height: 40px;
+  border: 1px solid var(--sd-line);
+  border-radius: 5px;
+  background: var(--sd-bg);
+  overflow: hidden;
+}
+
+.sd-digits button {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--sd-rule);
+  background: none;
+  color: var(--sd-muted);
+  cursor: pointer;
+  transition: background-color .12s var(--ease), color .12s var(--ease);
+}
+
+.sd-digits button:last-child { border-right: 0; }
+.sd-digits b { color: var(--sd-ink); font-size: 15px; font-weight: 600; line-height: 1.15; }
+.sd-digits span { font-size: 11.5px; line-height: 1.15; white-space: nowrap; }
+.sd-digits svg.i { width: 13px; height: 13px; stroke-width: 2.4; }
+.sd-digits button:hover, .sd-digits button.is-hover { background: var(--sd-raised); color: var(--sd-ink); }
+.sd-digits button.is-done b { color: var(--sd-faint); }
+.sd-digits button.is-on, .sd-digits button.is-on b { background: var(--sd-ink); color: var(--sd-on-ink); }
+.sd-digits button:focus-visible { outline-offset: -3px; }
+
+/* ---- the step found, as the caption of the board ----------------------
+   Its name, the reasoning in words, and a key to its marks. Never narrower
+   than the board, and wider where the board is small, so the reasoning
+   keeps to a few lines. Given more to say than there is room for, it
+   scrolls rather than move the board. */
+.sd-step {
+  flex: 0 1 auto;
+  width: min(100cqw - 24px, max(var(--board), 760px));
+  min-height: var(--step);
+  margin: 10px 0;
+  padding: 9px 14px 10px;
+  border: 1px solid var(--sd-line);
+  border-radius: 5px;
+  background: var(--sd-panel);
+  overflow: hidden auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sd-line) transparent;
+}
+
+.sd-step > header { display: flex; align-items: baseline; gap: 12px; min-height: 24px; }
+.sd-step h2 { flex: none; font-size: 16px; font-weight: 600; letter-spacing: .01em; }
+.sd-step .sd-step-rule { flex: 1; min-width: 0; color: var(--sd-muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sd-step .sd-step-text { max-width: 104ch; margin-top: 3px; font-size: 14.5px; line-height: 1.45; user-select: text; }
+.sd-step-text b { font-weight: 600; }
+
+/* A cell or a unit the reasoning names. Under the pointer the board picks
+   it out, and a click holds it there: blue for cells, the highlighter for
+   rows, columns and boxes, as on the board. */
+.sd-ref {
+  --tone: var(--sd-pen);
+  margin: 0 -1px;
+  padding: 0 1px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline dotted var(--sd-faint);
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: background-color .1s var(--ease), box-shadow .1s var(--ease);
+}
+
+.sd-ref.is-unit { --tone: var(--sd-scope); }
+.sd-ref:hover, .sd-ref.is-hover { background: color-mix(in srgb, var(--tone) 24%, transparent); text-decoration-color: transparent; }
+.sd-ref[aria-pressed='true'] { background: color-mix(in srgb, var(--tone) 40%, transparent); box-shadow: inset 0 0 0 1px var(--tone); text-decoration-color: transparent; }
+.sd-shell .sd-ref:focus-visible { outline-offset: 0; }
+
+.sd-pager { display: flex; align-items: center; flex: none; }
+.sd-step .sd-pager { align-self: center; margin-left: auto; }
+.sd-pager output { min-width: 56px; color: var(--sd-muted); font-size: 12.5px; text-align: center; }
+
+.sd-pager button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--sd-line);
+  border-radius: 4px;
+  background: var(--sd-bg);
+  color: var(--sd-muted);
+  cursor: pointer;
+  transition: color .12s var(--ease), border-color .12s var(--ease);
+}
+
+.sd-pager button:hover, .sd-pager button.is-hover { border-color: var(--sd-faint); color: var(--sd-ink); }
+.sd-pager button[disabled] { border-color: var(--sd-line); color: var(--sd-faint); opacity: .5; cursor: default; }
+
+/* the key to the marks on the board, filled in for this step: each of them
+   can be picked out by itself */
+.sd-step > footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; margin-top: 8px; }
+.sd-key { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.sd-key button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  height: 27px;
+  padding: 0 10px 0 8px;
+  border: 1px solid var(--sd-line);
+  border-radius: 5px;
+  background: var(--sd-bg);
+  color: var(--sd-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color .12s var(--ease), color .12s var(--ease), border-color .12s var(--ease);
+}
+
+.sd-key b { color: var(--sd-ink); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sd-key button:hover, .sd-key button.is-hover { border-color: var(--sd-faint); color: var(--sd-ink); }
+.sd-key button[aria-pressed='true'] { border-color: var(--sd-ink); background: var(--sd-raised); color: var(--sd-ink); }
+
+.sd-mark { position: relative; display: grid; place-items: center; width: 14px; height: 14px; flex: none; font-style: normal; }
+.sd-mark.disc::after { content: ''; width: 11px; height: 11px; border-radius: 50%; background: var(--sd-pen); }
+.sd-mark.digit { color: var(--sd-pen); font-size: 15px; font-weight: 600; line-height: 14px; }
+.sd-mark.strike::after { content: ''; width: 14px; height: 2px; border-radius: 1px; background: var(--sd-strike); transform: rotate(-45deg); }
+.sd-mark.wash::after { content: ''; width: 14px; height: 10px; border: 1px solid color-mix(in srgb, var(--sd-scope) 60%, transparent); border-radius: 2px; background: color-mix(in srgb, var(--sd-scope) 22%, transparent); }
+
+/* A view too short to keep that room under the board: the step goes beside
+   it instead, laid out as a column, and the board keeps its size */
+@container view (max-height: 700px) and (min-aspect-ratio: 4 / 3) {
+  .sd-stage {
+    --aside: 340px;
+    --fit: min(100cqw - 2 * var(--axis) - var(--aside) - 28px, 100cqh - var(--axis) - var(--strip) - 22px);
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .sd-step { width: var(--aside); min-height: 300px; max-height: calc(100cqh - var(--axis) - 22px); margin: calc(6px + var(--axis)) 0 0 4px; }
+  .sd-step > header { flex-wrap: wrap; row-gap: 2px; }
+  .sd-step .sd-step-rule { flex-basis: 100%; order: 1; white-space: normal; }
+  .sd-step .sd-step-text { margin-top: 8px; }
+  .sd-step > footer { margin-top: 11px; }
+}
+
+/* ---- panes, ruled like a drawing's title block ----------------------- */
+.sd-pane { padding: 12px 16px 13px; border-bottom: 1px solid var(--sd-rule); }
+.sd-pane:last-child { border-bottom: 0; }
+.sd-pane > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 24px; margin-bottom: 6px; }
+
+/* Progress */
+.sd-figure { display: flex; align-items: baseline; gap: 7px; line-height: 1; }
+.sd-figure strong { font-size: 46px; font-weight: 500; letter-spacing: -.02em; font-variant-numeric: lining-nums; }
+.sd-figure span { color: var(--sd-muted); font-size: 16px; }
+
+.sd-meter { display: flex; height: 5px; margin: 10px 0 9px; border-radius: 3px; background: var(--sd-raised); overflow: hidden; }
+.sd-meter i { display: block; height: 100%; transition: width .3s var(--ease); }
+.sd-meter .given { background: var(--sd-muted); }
+.sd-meter .solved { background: var(--sd-pen); }
+
+.sd-tally { display: flex; justify-content: space-between; gap: 12px; }
+.sd-tally dt { color: var(--sd-muted); font-size: 12.5px; white-space: nowrap; }
+.sd-tally dd { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sd-tally .given dt::before, .sd-tally .solved dt::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; background: var(--sd-muted); }
+.sd-tally .solved dt::before { background: var(--sd-pen); }
+
+.sd-verdict { display: flex; align-items: center; gap: 7px; margin-top: 7px !important; font-size: 13px; }
+.sd-verdict svg { color: var(--sd-good); }
+.sd-verdict.warn svg { color: var(--sd-warn); }
+.sd-verdict b { font-weight: 600; }
+
+/* Solve path */
+.sd-path { display: flex; flex: 1; flex-direction: column; min-height: 120px; }
+.sd-list { flex: 0 1 auto; min-height: 0; margin: 0 -8px !important; overflow: hidden auto; scrollbar-width: thin; scrollbar-color: var(--sd-line) transparent; }
+
+.sd-list button {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--sd-ink);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .1s var(--ease);
+}
+
+.sd-list i { color: var(--sd-faint); font-size: 12.5px; font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
+.sd-list span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sd-list em { color: var(--sd-muted); font-size: 12.5px; font-style: normal; white-space: nowrap; }
+.sd-list em.placed::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; background: var(--sd-pen); }
+.sd-list em.removed::before { content: ''; display: inline-block; width: 10px; height: 2px; margin-right: 5px; border-radius: 1px; background: var(--sd-strike); vertical-align: 3px; transform: rotate(-45deg); }
+.sd-list button:hover, .sd-list button.is-hover { background: color-mix(in srgb, var(--sd-raised) 55%, transparent); }
+.sd-list button.is-current { background: var(--sd-raised); }
+.sd-list button.is-current span { font-weight: 600; }
+.sd-list button.is-ahead span, .sd-list button.is-ahead em { color: var(--sd-faint); }
+.sd-list button.is-ahead em::before { opacity: .45; }
+.sd-list button:focus-visible { outline-offset: -2px; }
+.sd-empty { margin-top: 4px !important; color: var(--sd-faint); font-size: 12.5px; }
+
+/* ---- given little width: one column, the board first -------------------
+   Asked of the shell, not of the window: a page may lay the workspace out
+   at a fixed size inside a small frame. What the shell itself does then is
+   for the page around it to say (see index.css). */
+@container shell (max-width: 880px) {
+  .sd-topbar { position: sticky; top: 0; height: 46px; }
+  .sd-status span:not(:nth-child(2)) { display: none; }
+  .sd-main { display: flex; flex-direction: column; }
+  .sd-work { display: block; order: -1; }
+  .sd-toolbar { flex-wrap: wrap; padding: 8px 12px; }
+  .sd-toolbar #step { flex: 1; }
+  .sd-toolbar .ui-acts { margin-left: 0; }
+  /* the board as wide as the column, the step under it as long as it needs */
+  .sd-view { container-type: inline-size; }
+  .sd-stage { --step: 0px; --axis: 18px; --fit: min(100cqw - 2 * var(--axis) - 8px, 620px); height: auto; }
+  .sd-step { width: calc(100cqw - 16px); }
+  .sd-digits span { display: none; }
+  .sd-side:first-child, .sd-side:last-child { overflow: visible; border: 0; border-top: 1px solid var(--sd-line); }
+  .sd-list { max-height: 260px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-shell * { animation: none !important; transition: none !important; }
+}

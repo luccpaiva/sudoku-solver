@@ -96,6 +96,7 @@ class Solver:
         yield self._intersection_removal(unsolved, units, 'Box-Reduction')
         yield self._x_wing(unsolved, units)
         yield self._swordfish(unsolved, units)
+        yield self._jellyfish(unsolved, units)
 
     # STRATEGY IMPLEMENTATIONS
     # ///////////////////////////////////////////////////////////////
@@ -216,6 +217,25 @@ class Solver:
 
         return StratHandler(
             name='Swordfish',
+            success=success,
+            highlight_cells=highlight_cells,
+            highlight_candidates=highlight_candidates,
+            eliminated_candidates=eliminated_candidates,
+            description=description,
+        )
+
+    @staticmethod
+    def _jellyfish(unsolved: dict, units: dict) -> StratHandler:
+        jellyfish_results = strats.jellyfish_find(unsolved, units)
+        success = bool(jellyfish_results)
+        highlight_candidates, eliminated_candidates, highlight_cells, description = None, None, None, None
+
+        if success:
+            highlight_candidates, eliminated_candidates, highlight_cells, description = strats.jellyfish_process(
+                jellyfish_results)
+
+        return StratHandler(
+            name='Jellyfish',
             success=success,
             highlight_cells=highlight_cells,
             highlight_candidates=highlight_candidates,

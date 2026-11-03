@@ -1,0 +1,44 @@
+/* ========================================
+   Sudoku Solver: the page around the workspace
+   The app gives the workspace the whole window. Everything inside
+   .sd-shell is styled by workspace.css.
+   ======================================== */
+@import './workspace.css';
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--sd-bg);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sd-shell {
+  height: 100%;
+}
+
+/* a narrow window scrolls the workspace as one column; the breakpoint is the
+   one workspace.css rearranges its inside at */
+@media (max-width: 880px) {
+  body {
+    overflow: auto;
+  }
+
+  html,
+  body,
+  #root,
+  .sd-shell {
+    height: auto;
+    min-height: 100%;
+  }
+
+  .sd-shell {
+    display: block;
+    overflow: visible;
+  }
+}

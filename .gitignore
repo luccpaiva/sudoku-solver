@@ -1,8 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Vite
+*.local
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+node_modules/.tmp/
+
+# Python
 __pycache__/
-.claude
-*.pyc
+*.py[cod]
 *.pyo
-.idea/
-*.iml
+.mypy_cache/
+*.egg-info/
 .venv/
 venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+z_last_loaded_puzzle
+
+# Local tool settings
+.claude/
