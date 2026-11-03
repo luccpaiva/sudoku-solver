@@ -2,6 +2,8 @@
 
 A Sudoku solver that works the way a person does. It never guesses: it goes down a list of thirty-four named strategies, simplest first, stops at the first one that applies, marks it on the board and explains it in words. The engine is plain TypeScript; the workspace around it is React.
 
+It is for Sudoku players who want to learn the techniques behind a solve: why each digit goes where it does, one named step at a time.
+
 ![A guided tour of the workspace: a digit is picked to see where it can still go, hidden singles are found, stepped through and written in, a naked pair strikes candidates out, the tough strategies are switched off until the solver stalls and X-Wing gets it through, Run solves the rest, the solve path puts the board back as it stood at an earlier step, and an expert puzzle is generated](assets/demo_sudoku.webp)
 
 ## Usage
@@ -89,3 +91,11 @@ sudoku-solver/
 ```
 
 The Python files at the root (`main.py`, `strats/`) are the first version of the solver, a PyGame app.
+
+## Roadmap
+
+[ROADMAP.md](ROADMAP.md): sudokuwiki.org's extreme strategies, hints that reveal a step a little at a time, bringing your own puzzle, and a layout for phones.
+
+## License
+
+[MIT](LICENSE)
