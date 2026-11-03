@@ -56,7 +56,7 @@ function links(pairs: ReadonlyArray<[CellIdx, CellIdx]>): string[] {
  * What a found step draws under the digits:
  *   1. a highlighter wash over each row, column or box the rule works in
  *   2. ties between the pattern cells: the ones the step names, or else
- *      between those in the same line
+ *      between those in the same line; a chain's weak links are dashed
  * Rings and candidate marks are drawn by the cells themselves.
  *
  * With a part of the step picked out, only that part is drawn: the wash
@@ -84,11 +84,14 @@ export function BoardOverlay() {
           />
         )
       })}
-      {tied && (instance.links
-        ? links(instance.links)
+      {tied && (instance.links || instance.weakLinks
+        ? links(instance.links ?? [])
         : ties(instance.units, new Set(instance.patternCells))
       ).map(d => (
         <path key={d} className="tie" d={d} />
+      ))}
+      {tied && links(instance.weakLinks ?? []).map(d => (
+        <path key={d} className="tie is-weak" d={d} />
       ))}
     </svg>
   )

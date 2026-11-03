@@ -85,7 +85,7 @@ export function bugPlusOne(snapshot: Snapshot): StratResult | null {
  * columns and two boxes, listed top-left, top-right, bottom-left, bottom-right.
  * Over four boxes a swap of the two digits would change what the boxes hold.
  */
-const RECTANGLES: ReadonlyArray<ReadonlyArray<CellIdx>> = (() => {
+export const RECTANGLES: ReadonlyArray<ReadonlyArray<CellIdx>> = (() => {
   const all: CellIdx[][] = []
   for (let r1 = 0; r1 < 8; r1++) {
     for (let r2 = r1 + 1; r2 < 9; r2++) {

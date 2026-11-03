@@ -370,7 +370,10 @@ svg.i.small { width: 15px; height: 15px; }
 .sd-paste .ui-toggle { padding: 4px 11px; }
 .sd-rating { margin-top: 11px; padding-top: 8px; border-top: 1px solid var(--sd-rule); }
 
-.sd-ladder h3 { position: relative; margin: 8px 0 1px; color: var(--sd-faint); font-size: 12.5px; font-weight: 500; }
+/* a family of strategies; a click on its name switches the whole family */
+.sd-ladder h3 { margin: 10px 0 1px; }
+.sd-ladder h3 button { padding: 1px 0; border: 0; background: none; color: var(--sd-muted); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.sd-ladder h3 button:hover, .sd-ladder h3 button:focus-visible { color: var(--sd-ink); }
 
 /* A strategy: its switch, its name, how many steps it has made, and what the
    last search made of it */
@@ -380,10 +383,11 @@ svg.i.small { width: 15px; height: 15px; }
 .sd-ladder .ui-check small { grid-column: 3; color: var(--sd-faint); font-size: 11.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .sd-ladder .ui-check output { grid-column: 4; min-width: 26px; color: var(--sd-faint); font-size: 12.5px; text-align: center; animation: sd-say .14s linear both; animation-delay: calc(var(--i) * var(--pace)); }
 
-/* The last search, drawn in the margin: a line that comes down from the top
-   of the list, a row at a time, and stops at the strategy that applied. Past
-   a strategy that is switched off the line is broken: it was not tried. */
-.sd-ladder [data-verdict]::before, .sd-ladder h3[data-passed]::before {
+/* The last search, drawn in the margin in the order it went: simplest
+   first, so it hops between families. Each strategy it tried gets a mark, one
+   after another; a strategy that is switched off gets a broken one: it was
+   not tried. The one that applied gets a dot. */
+.sd-ladder [data-verdict]::before {
   content: '';
   position: absolute;
   left: -9px;
@@ -395,9 +399,8 @@ svg.i.small { width: 15px; height: 15px; }
   animation: sd-descend var(--pace) linear both;
   animation-delay: calc(var(--i) * var(--pace));
 }
-.sd-ladder h3[data-passed]::before { top: -8px; bottom: -1px; }
 .sd-ladder [data-verdict='off']::before { background: repeating-linear-gradient(var(--sd-faint) 0 3px, transparent 3px 6px); }
-.sd-ladder [data-verdict='yes']::before { bottom: 50%; }
+.sd-ladder [data-verdict='yes']::before { content: none; }
 
 /* where it stopped */
 .sd-ladder [data-verdict='yes']::after, .sd-ladder [data-end]::after {
@@ -412,8 +415,9 @@ svg.i.small { width: 15px; height: 15px; }
   animation: sd-arrive .24s var(--ease) both;
   animation-delay: calc((var(--i) + 1) * var(--pace));
 }
-/* at the bottom with nothing found: an end with nothing in it */
-.sd-ladder [data-end]::after { top: auto; bottom: -5px; border: 2px solid var(--sd-faint); background: var(--sd-panel); }
+/* at the bottom with nothing found: an end with nothing in it, once every
+   strategy has been marked */
+.sd-ladder [data-end]::after { top: auto; bottom: -5px; border: 2px solid var(--sd-faint); background: var(--sd-panel); animation-delay: calc(var(--last) * var(--pace)); }
 
 .sd-ladder .ui-check.is-found span { color: var(--sd-ink); font-weight: 600; transition: color 0s, font-weight 0s; transition-delay: calc(var(--i) * var(--pace)); }
 .sd-ladder [data-verdict='yes'] output { padding: 0 7px; border-radius: 9px; background: var(--sd-pen); color: var(--sd-on-ink); font-weight: 700; animation-name: sd-arrive; animation-duration: .24s; animation-timing-function: var(--ease); animation-delay: calc((var(--i) + 1) * var(--pace)); }
@@ -614,6 +618,7 @@ svg.i.small { width: 15px; height: 15px; }
 .sd-overlay .scope { fill: var(--sd-scope); fill-opacity: .1; stroke: var(--sd-scope); stroke-opacity: .55; stroke-width: 1; vector-effect: non-scaling-stroke; transition: fill-opacity .15s var(--ease), stroke-opacity .15s var(--ease); }
 .sd-overlay .scope.is-lit { fill-opacity: .2; stroke-opacity: .95; }
 .sd-overlay .tie { fill: none; stroke: var(--sd-pen); stroke-opacity: .5; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.sd-overlay .tie.is-weak { stroke-dasharray: 4 3; }
 
 /* the nine digits, and how many of each are still to place */
 .sd-digits {

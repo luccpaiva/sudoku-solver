@@ -36,7 +36,8 @@ export function loadPuzzle(input: string | number[][]): {
   const values = parseInput(input)
   const given = [...values]
   const candidates = initCandidates(values)
-  return { given, snapshot: { values, candidates } }
+  const clues = values.map(v => v !== null)
+  return { given, snapshot: { values, candidates, clues } }
 }
 
 // ── Applying strategy results ─────────────────────────────────────────────────
@@ -71,7 +72,12 @@ export function applyStratResult(snapshot: Snapshot, result: StratResult): Snaps
     }
   }
 
-  return { values, candidates }
+  return withClues({ values, candidates }, snapshot)
+}
+
+/** A new board with the clues of the one it came from, if that one knew them. */
+function withClues(next: Snapshot, from: Snapshot): Snapshot {
+  return from.clues ? { ...next, clues: from.clues } : next
 }
 
 /**
@@ -112,7 +118,7 @@ export function clearManualCell(
   const candidates = initCandidates(values)
   // Re-apply any values that are in the current snapshot but not in given
   // (they were manual entries that were already set; we just need the init)
-  return { values, candidates }
+  return withClues({ values, candidates }, snapshot)
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

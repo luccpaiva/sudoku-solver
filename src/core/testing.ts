@@ -28,8 +28,10 @@ export function fromWiki(bd: string): Snapshot {
 
   const values: Array<number | null> = []
   const candidates: Array<Set<number>> = []
+  const clues: boolean[] = []
   for (const pair of cells) {
     const n = parseInt(pair, 36) & 1023
+    clues.push(n <= 9)
     if (n <= 18) {
       values.push(n <= 9 ? n : n - 9)
       candidates.push(new Set())
@@ -38,7 +40,7 @@ export function fromWiki(bd: string): Snapshot {
       candidates.push(new Set(DIGITS.filter(d => (n - 18) & (1 << (d - 1)))))
     }
   }
-  return { values, candidates }
+  return { values, candidates, clues }
 }
 
 /**

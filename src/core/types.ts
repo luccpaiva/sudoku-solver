@@ -19,6 +19,11 @@ export type Snapshot = {
   readonly values: ReadonlyArray<number | null>
   /** Remaining candidates per cell. Empty set if cell is solved. */
   readonly candidates: ReadonlyArray<ReadonlySet<number>>
+  /**
+   * Which values are clues of the puzzle, as against digits solved since.
+   * Only Avoidable Rectangles asks; without it every value counts as a clue.
+   */
+  readonly clues?: ReadonlyArray<boolean>
 }
 
 // ── Strategy results ─────────────────────────────────────────────────────────
@@ -65,6 +70,11 @@ export type StratInstance = {
    * cells that share a row or column of `units`.
    */
   links?: Array<[CellIdx, CellIdx]>
+  /**
+   * Ties that only rule out (if one end is true, the other is not), drawn
+   * dashed: the weak links of a chain, whose strong ones are in `links`.
+   */
+  weakLinks?: Array<[CellIdx, CellIdx]>
   /** Compact expert notation, e.g. "A2/A3 locks 1/6". */
   label: string
   /** Plain-language explanation for someone new to sudoku. */
@@ -146,11 +156,37 @@ export type CellViewModel = {
 
 // ── Strategy metadata ─────────────────────────────────────────────────────────
 
-export type StrategyCategory = 'basic' | 'tough'
+/**
+ * How hard a strategy is: its tier on sudokuwiki.org. The solver tries the
+ * tiers in this order; the rating and the expert generator count the steps
+ * past the basic ones.
+ */
+export type StrategyCategory = 'basic' | 'tough' | 'diabolical'
+
+/**
+ * What kind of reasoning a strategy uses. The strategy panel and the guide
+ * group the strategies by family.
+ *   Singles          one place or one digit left
+ *   Intersections    a digit confined to where a line and a box overlap
+ *   Locked sets      N cells that between them hold N digits
+ *   Fish             a digit confined to N lines one way and N the other
+ *   Wings            a few cells that between them must hold a digit
+ *   Chains           links that force one candidate or another, followed along
+ *   Deadly patterns  what would give the puzzle two solutions, or none
+ */
+export type StrategyFamily =
+  | 'Singles'
+  | 'Intersections'
+  | 'Locked sets'
+  | 'Fish'
+  | 'Wings'
+  | 'Chains'
+  | 'Deadly patterns'
 
 export type StrategyMeta = {
   name: string
   category: StrategyCategory
+  family: StrategyFamily
   /** Short explanation shown in the strategy panel */
   summary: string
 }

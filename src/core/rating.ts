@@ -9,12 +9,12 @@ export type Rating = {
   steps: number
   /** The furthest strategy down the pipeline that the solve called on. */
   hardest: string | null
-  /** How many of the steps took a tough strategy. */
+  /** How many of the steps took a strategy beyond the basic ones (tough or diabolical). */
   tough: number
 }
 
 const RANK = new Map(STRATEGY_META.map((meta, i) => [meta.name, i]))
-const TOUGH = new Set(STRATEGY_META.filter(meta => meta.category === 'tough').map(meta => meta.name))
+const TOUGH = new Set(STRATEGY_META.filter(meta => meta.category !== 'basic').map(meta => meta.name))
 
 /**
  * Solve a copy of the puzzle with every strategy enabled and report

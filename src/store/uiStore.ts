@@ -23,6 +23,8 @@ interface UIState {
   setPeek: (spot: Spot | null) => void
   toggleDark: () => void
   toggleStrategy: (name: string) => void
+  /** Switch several strategies at once, e.g. a whole family. */
+  setStrategies: (names: ReadonlyArray<string>, on: boolean) => void
 }
 
 const THEME_KEY = 'sudoku-theme'
@@ -59,6 +61,14 @@ export const useUIStore = create<UIState>(set => ({
     const next = new Set(s.enabledStrategies)
     if (next.has(name)) next.delete(name)
     else next.add(name)
+    return { enabledStrategies: next }
+  }),
+  setStrategies: (names, on) => set(s => {
+    const next = new Set(s.enabledStrategies)
+    for (const name of names) {
+      if (on) next.add(name)
+      else next.delete(name)
+    }
     return { enabledStrategies: next }
   }),
 }))
